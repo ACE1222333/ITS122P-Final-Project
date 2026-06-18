@@ -1,4 +1,0 @@
-# Pass the Authorization header to PHP (stripped by Apache in some XAMPP configs)
-RewriteEngine On
-RewriteCond %{HTTP:Authorization} ^(.+)$
-RewriteRule .* - [E=HTTP_AUTHORIZATION:%1]

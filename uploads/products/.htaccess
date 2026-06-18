@@ -1,5 +1,0 @@
-# Prevent execution of uploaded scripts
-<FilesMatch "\.(php|php3|php4|php5|phtml|pl|py|cgi|asp|aspx|sh)$">
-    Deny from all
-</FilesMatch>
-Options -Indexes
