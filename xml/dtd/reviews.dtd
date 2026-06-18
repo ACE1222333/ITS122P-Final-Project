@@ -1,0 +1,27 @@
+<!-- ============================================================
+     reviews.dtd
+     Document Type Definition for customer reviews.
+     Reviews are linked to a user and optionally to a product.
+============================================================ -->
+
+<!ELEMENT reviews (review*)>
+
+<!ELEMENT review (
+  review_id,
+  user_id,
+  reviewer_name,
+  product_id?,
+  product_name?,
+  rating,
+  comment,
+  date_reviewed
+)>
+
+<!ELEMENT review_id     (#PCDATA)>
+<!ELEMENT user_id       (#PCDATA)>
+<!ELEMENT reviewer_name (#PCDATA)>
+<!ELEMENT product_id    (#PCDATA)>
+<!ELEMENT product_name  (#PCDATA)>
+<!ELEMENT rating        (#PCDATA)>   <!-- 1 | 2 | 3 | 4 | 5 -->
+<!ELEMENT comment       (#PCDATA)>
+<!ELEMENT date_reviewed (#PCDATA)>   <!-- YYYY-MM-DD HH:MM:SS -->

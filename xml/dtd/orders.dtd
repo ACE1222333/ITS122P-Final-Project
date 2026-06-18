@@ -1,0 +1,74 @@
+<!-- ============================================================
+     orders.dtd
+     Document Type Definition for customer orders.
+     Each order contains one or more items and one payment record.
+============================================================ -->
+
+<!ELEMENT orders (order*)>
+
+<!ELEMENT order (
+  order_id,
+  user_id,
+  customer,
+  total_amount,
+  status,
+  date_ordered,
+  reservation_expires_at?,
+  items,
+  payment
+)>
+
+<!-- Order header -->
+<!ELEMENT order_id                (#PCDATA)>
+<!ELEMENT user_id                 (#PCDATA)>
+<!ELEMENT total_amount            (#PCDATA)>
+<!ELEMENT status                  (#PCDATA)>
+  <!-- Pending Payment | Pending Verification | Processing |
+       Shipping | Shipped | Completed | Rejected | Cancelled -->
+<!ELEMENT date_ordered            (#PCDATA)>   <!-- YYYY-MM-DD HH:MM:SS -->
+<!ELEMENT reservation_expires_at  (#PCDATA)>   <!-- YYYY-MM-DD HH:MM:SS -->
+
+<!-- Customer info (denormalised snapshot) -->
+<!ELEMENT customer (
+  name,
+  email,
+  phone?,
+  address?
+)>
+<!ELEMENT name    (#PCDATA)>
+<!ELEMENT email   (#PCDATA)>
+<!ELEMENT phone   (#PCDATA)>
+<!ELEMENT address (#PCDATA)>
+
+<!-- Order items -->
+<!ELEMENT items  (item*)>
+<!ELEMENT item (
+  product_id,
+  product_name,
+  size?,
+  price,
+  image?
+)>
+<!ELEMENT product_id   (#PCDATA)>
+<!ELEMENT product_name (#PCDATA)>
+<!ELEMENT price        (#PCDATA)>
+<!ELEMENT image        (#PCDATA)>
+
+<!-- Payment -->
+<!ELEMENT payment (
+  payment_id?,
+  method,
+  reference_number?,
+  proof_image?,
+  payment_status,
+  amount,
+  date_paid?
+)>
+<!ELEMENT payment_id      (#PCDATA)>
+<!ELEMENT method          (#PCDATA)>   <!-- GCash -->
+<!ELEMENT reference_number (#PCDATA)>
+<!ELEMENT proof_image     (#PCDATA)>   <!-- URL -->
+<!ELEMENT payment_status  (#PCDATA)>
+  <!-- Pending Verification | Verified | Rejected -->
+<!ELEMENT amount          (#PCDATA)>
+<!ELEMENT date_paid       (#PCDATA)>

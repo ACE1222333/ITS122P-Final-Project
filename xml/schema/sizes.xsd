@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ============================================================
+     sizes.xsd
+     XML Schema Definition for the predefined size catalogue.
+     Sizes are fixed: XS, S, M, L, XL, XXL, Free Size.
+============================================================ -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified">
+
+  <xs:element name="sizes">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="size" type="SizeType"
+                    minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="SizeType">
+    <xs:sequence>
+      <xs:element name="size_id" type="xs:positiveInteger"/>
+      <xs:element name="label"   type="SizeLabelType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="SizeLabelType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="XS"/>
+      <xs:enumeration value="S"/>
+      <xs:enumeration value="M"/>
+      <xs:enumeration value="L"/>
+      <xs:enumeration value="XL"/>
+      <xs:enumeration value="XXL"/>
+      <xs:enumeration value="Free Size"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

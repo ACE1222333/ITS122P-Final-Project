@@ -1,0 +1,17 @@
+<!-- ============================================================
+     categories.dtd
+     Document Type Definition for product categories.
+     Categories are user-managed through the admin panel.
+============================================================ -->
+
+<!ELEMENT categories (category*)>
+
+<!ELEMENT category (
+  category_id,
+  name,
+  description?
+)>
+
+<!ELEMENT category_id  (#PCDATA)>
+<!ELEMENT name         (#PCDATA)>
+<!ELEMENT description  (#PCDATA)>

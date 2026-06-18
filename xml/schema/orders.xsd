@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ============================================================
+     orders.xsd
+     XML Schema Definition for customer orders.
+============================================================ -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified">
+
+  <!-- Root -->
+  <xs:element name="orders">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="order" type="OrderType"
+                    minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- ── Order ─────────────────────────────────────────────── -->
+  <xs:complexType name="OrderType">
+    <xs:sequence>
+      <xs:element name="order_id"               type="xs:positiveInteger"/>
+      <xs:element name="user_id"                type="xs:positiveInteger"/>
+      <xs:element name="customer"               type="CustomerType"/>
+      <xs:element name="total_amount"           type="xs:decimal"/>
+      <xs:element name="status"                 type="OrderStatusType"/>
+      <xs:element name="date_ordered"           type="xs:dateTime"/>
+      <xs:element name="reservation_expires_at" type="xs:dateTime" minOccurs="0"/>
+      <xs:element name="items"                  type="ItemsType"/>
+      <xs:element name="payment"                type="PaymentType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- ── Customer snapshot ─────────────────────────────────── -->
+  <xs:complexType name="CustomerType">
+    <xs:sequence>
+      <xs:element name="name"    type="xs:string"/>
+      <xs:element name="email"   type="xs:string"/>
+      <xs:element name="phone"   type="xs:string" minOccurs="0"/>
+      <xs:element name="address" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- ── Order items ───────────────────────────────────────── -->
+  <xs:complexType name="ItemsType">
+    <xs:sequence>
+      <xs:element name="item" type="ItemType"
+                  minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ItemType">
+    <xs:sequence>
+      <xs:element name="product_id"   type="xs:positiveInteger"/>
+      <xs:element name="product_name" type="xs:string"/>
+      <xs:element name="size"         type="xs:string"  minOccurs="0"/>
+      <xs:element name="price"        type="xs:decimal"/>
+      <xs:element name="image"        type="xs:anyURI"  minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- ── Payment ───────────────────────────────────────────── -->
+  <xs:complexType name="PaymentType">
+    <xs:sequence>
+      <xs:element name="payment_id"       type="xs:positiveInteger" minOccurs="0"/>
+      <xs:element name="method"           type="xs:string"/>
+      <xs:element name="reference_number" type="xs:string"   minOccurs="0"/>
+      <xs:element name="proof_image"      type="xs:anyURI"   minOccurs="0"/>
+      <xs:element name="payment_status"   type="PaymentStatusType"/>
+      <xs:element name="amount"           type="xs:decimal"/>
+      <xs:element name="date_paid"        type="xs:dateTime" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- ── Enumerations ──────────────────────────────────────── -->
+  <xs:simpleType name="OrderStatusType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Pending Payment"/>
+      <xs:enumeration value="Pending Verification"/>
+      <xs:enumeration value="Processing"/>
+      <xs:enumeration value="Shipping"/>
+      <xs:enumeration value="Shipped"/>
+      <xs:enumeration value="Completed"/>
+      <xs:enumeration value="Rejected"/>
+      <xs:enumeration value="Cancelled"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="PaymentStatusType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Pending Verification"/>
+      <xs:enumeration value="Verified"/>
+      <xs:enumeration value="Rejected"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

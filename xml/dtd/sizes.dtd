@@ -1,0 +1,15 @@
+<!-- ============================================================
+     sizes.dtd
+     Document Type Definition for the predefined size catalogue.
+     Sizes are fixed and cannot be created or deleted by users.
+============================================================ -->
+
+<!ELEMENT sizes (size*)>
+
+<!ELEMENT size (
+  size_id,
+  label
+)>
+
+<!ELEMENT size_id (#PCDATA)>
+<!ELEMENT label   (#PCDATA)>   <!-- XS | S | M | L | XL | XXL | Free Size -->

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order History — Carousell</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shop-styles.css">
+</head>
+<body>
+
+<!-- Nav, cart, auth, overlays injected by shop-layout.js -->
+
+<div class="orders-page">
+  <div class="orders-inner">
+
+    <div class="orders-page-title">Order History</div>
+    <div class="orders-page-sub">Your past and completed transactions.</div>
+
+    <!-- Tab navigation between My Orders and Order History -->
+    <div class="orders-tabs">
+      <a class="orders-tab" href="shop-my-orders.html">My Orders</a>
+      <a class="orders-tab active" href="shop-order-history.html">Order History</a>
+    </div>
+
+    <!-- Order list -->
+    <div id="history-list">
+      <div class="orders-empty">
+        <div class="orders-empty-icon">🕐</div>
+        <div style="font-size:0.84rem;color:var(--text-muted);">Loading order history…</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer><span>© 2025 Carousell. All rights reserved.</span></footer>
+
+<script src="shop-shared.js"></script>
+<script src="shop-layout.js"></script>
+<script>
+initShopLayout('order-history');
+
+/* Redirect to shop if not logged in */
+if (!currentUser) {
+  showToast('Please log in to view your order history.');
+  setTimeout(() => { window.location.href = 'shop.html'; }, 1000);
+}
+
+/* Load and render historical (final) orders */
+(async function() {
+  if (!currentUser) return;
+
+  const allOrders = await loadMyOrders();
+
+  /* Order History = completed, rejected, or cancelled orders */
+  const history = allOrders.filter(o => FINAL_ORDER_STATUSES.includes(o.orderStatus));
+
+  const listEl = document.getElementById('history-list');
+
+  if (!history.length) {
+    listEl.innerHTML = `
+      <div class="orders-empty">
+        <div class="orders-empty-icon">🕐</div>
+        <div class="orders-empty-title">No Order History Yet</div>
+        <div class="orders-empty-sub">
+          Completed, rejected, and cancelled orders will appear here.<br>
+          Active orders can be tracked under <a href="shop-my-orders.html" style="color:var(--accent);">My Orders</a>.
+        </div>
+        <a href="shop-products.html" class="btn-primary" style="display:inline-block;">Start Shopping</a>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = history.map(renderHistoryCard).join('');
+})();
+</script>
+</body>
+</html>
