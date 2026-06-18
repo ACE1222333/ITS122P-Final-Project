@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carousell — Second-Hand Clothing</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shop-styles.css">
+</head>
+<body>
+
+<!-- Nav, modal, cart, auth, toast injected by shop-layout.js -->
+
+<div class="hero">
+  <div class="hero-tag">Curated Second-Hand — 2025</div>
+  <h1>Best Second-Hand Clothing<br>for the Better Planet</h1>
+  <p>Every piece has a story. We curate quality pre-loved clothing so nothing goes to waste — and you get something truly one-of-a-kind.</p>
+  <button class="btn-primary" onclick="goPage('shop')">Shop All</button>
+</div>
+
+<div class="hero-banner">
+  <!-- ▼ Replace src with your banner image path -->
+  <img src="images/image1.jpg" alt="Collection Banner" loading="lazy">
+  <div class="hero-banner-text">
+    <h3>One-of-a-Kind Pieces</h3>
+    <p>Pre-loved, curated, ready to wear again</p>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Featured Pieces</div>
+    <a class="section-link" href="shop-products.html">View all →</a>
+  </div>
+  <div class="featured-grid" id="featured-grid">
+    <div class="loading-state">Loading products…</div>
+  </div>
+</div>
+
+<div class="promo-strip">
+  <h2>Pre-Loved Style,<br>Zero Compromise</h2>
+  <p>Each item is hand-picked, cleaned, and quality-checked. When you shop Carousell, you give clothes a second life — and your wardrobe something unique.</p>
+  <button class="btn-outline" onclick="goPage('about')">Our Story</button>
+</div>
+
+<footer><span>© 2025 Carousell. All rights reserved.</span></footer>
+
+<script src="shop-shared.js"></script>
+<script src="shop-layout.js"></script>
+<script>
+initShopLayout('home');
+
+/* ── FEATURED GRID ───────────────────────────────────────────── */
+function buildFeatured(products) {
+  const grid = document.getElementById('featured-grid');
+  grid.innerHTML = '';
+  const inCart  = new Set(cart.map(c => c.product.id));
+  const featured = products.filter(p => p.featured).slice(0, 4);
+  const list     = featured.length ? featured : products.slice(0, 4);
+
+  list.forEach(p => {
+    const inCartItem = inCart.has(p.id);
+    const isSold     = p.status === 'sold';
+    const isReserved = p.status === 'reserved';
+    const isUnavailable = inCartItem || isSold || isReserved;
+
+    let overlayHtml = '';
+    if (inCartItem)      overlayHtml = '<div class="sold-overlay"><div class="sold-stamp">In Cart</div></div>';
+    else if (isSold)     overlayHtml = '<div class="sold-overlay"><div class="sold-stamp">Sold</div></div>';
+    else if (isReserved) overlayHtml = '<div class="sold-overlay"><div class="reserved-stamp">Reserved</div></div>';
+
+    const card = document.createElement('div');
+    card.className  = 'feat-card';
+    card.innerHTML  = `
+      <div class="feat-img" style="position:relative;">
+        <img src="${getCoverImage(p)}" alt="${p.name}" loading="lazy">
+        ${overlayHtml}
+      </div>
+      <div class="feat-info">
+        <div class="feat-name">${p.name}</div>
+        <div class="feat-price" style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;">
+          ₱${p.price.toLocaleString()} · Size ${p.size||'—'}
+          ${p.condition ? `<span class="condition-badge ${p.condition.toLowerCase().replace(/\s+/g,'-')}">${p.condition}</span>` : ''}
+        </div>
+      </div>`;
+    if (!isUnavailable) card.addEventListener('click', () => openModal(p));
+    grid.appendChild(card);
+  });
+}
+
+/* PHP integration point: loadProducts() fetches from api/products.php */
+loadProducts(buildFeatured);
+</script>
+</body>
+</html>

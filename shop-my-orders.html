@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Orders — Carousell</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shop-styles.css">
+</head>
+<body>
+
+<!-- Nav, cart, auth, overlays injected by shop-layout.js -->
+
+<div class="orders-page">
+  <div class="orders-inner">
+
+    <div class="orders-page-title">My Orders</div>
+    <div class="orders-page-sub">Track your active and ongoing orders.</div>
+
+    <!-- Tab navigation between My Orders and Order History -->
+    <div class="orders-tabs">
+      <a class="orders-tab active" href="shop-my-orders.html">My Orders</a>
+      <a class="orders-tab" href="shop-order-history.html">Order History</a>
+    </div>
+
+    <!-- Order list -->
+    <div id="orders-list">
+      <div class="orders-empty">
+        <div class="orders-empty-icon">📦</div>
+        <div style="font-size:0.84rem;color:var(--text-muted);">Loading your orders…</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer><span>© 2025 Carousell. All rights reserved.</span></footer>
+
+<script src="shop-shared.js"></script>
+<script src="shop-layout.js"></script>
+<script>
+initShopLayout('my-orders');
+
+/* Redirect to shop if not logged in */
+if (!currentUser) {
+  showToast('Please log in to view your orders.');
+  setTimeout(() => { window.location.href = 'shop.html'; }, 1000);
+}
+
+/* Load and render active orders */
+(async function() {
+  if (!currentUser) return;
+
+  const allOrders = await loadMyOrders();
+
+  /* My Orders = active/in-progress statuses only */
+  const active = allOrders.filter(o => ACTIVE_ORDER_STATUSES.includes(o.orderStatus));
+
+  const listEl = document.getElementById('orders-list');
+
+  if (!active.length) {
+    listEl.innerHTML = `
+      <div class="orders-empty">
+        <div class="orders-empty-icon">📦</div>
+        <div class="orders-empty-title">No Active Orders</div>
+        <div class="orders-empty-sub">
+          You have no orders currently in progress.<br>
+          Completed and past orders can be found in Order History.
+        </div>
+        <a href="shop-products.html" class="btn-primary" style="display:inline-block;">Browse Products</a>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = active.map(renderOrderCard).join('');
+})();
+</script>
+</body>
+</html>

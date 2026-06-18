@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orders — Carousell Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin-styles.css">
+<style>
+/* ── ORDER SIDE PANEL ── */
+.order-panel-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,15,15,0.45); backdrop-filter: blur(3px);
+  z-index: 800;
+}
+.order-panel-overlay.open { display: block; }
+
+.order-panel {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: 520px; max-width: 100vw;
+  background: #fff; display: flex; flex-direction: column;
+  box-shadow: -8px 0 40px rgba(0,0,0,0.18);
+  transform: translateX(100%);
+  transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
+  z-index: 801;
+}
+.order-panel.open { transform: translateX(0); }
+
+/* Header */
+.panel-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 1.4rem 1.6rem; border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.panel-header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+.panel-order-id    { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.08em; line-height: 1; }
+.panel-order-date  { font-size: 0.75rem; color: var(--text-muted); }
+.panel-close {
+  width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%;
+  border: 1px solid var(--border); background: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; color: var(--text-muted); transition: background 0.2s, color 0.2s;
+}
+.panel-close:hover { background: var(--bg-section); color: var(--text); }
+
+/* Scrollable body */
+.panel-body { flex: 1; overflow-y: auto; padding: 0 1.6rem 1.6rem; }
+
+/* Sections */
+.panel-section { padding-top: 1.4rem; }
+.panel-section + .panel-section { border-top: 1px solid var(--border); margin-top: 1.4rem; padding-top: 1.4rem; }
+.panel-section-title {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;
+}
+.panel-section-title svg {
+  width: 14px; height: 14px; stroke: var(--text-muted); fill: none; stroke-width: 2; flex-shrink: 0;
+}
+
+/* Info rows */
+.panel-row {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 1rem; margin-bottom: 0.6rem; font-size: 0.83rem;
+}
+.panel-row:last-child { margin-bottom: 0; }
+.panel-key { color: var(--text-muted); flex-shrink: 0; }
+.panel-val { text-align: right; font-weight: 500; word-break: break-word; max-width: 65%; }
+.panel-val.mono { font-family: monospace; font-size: 0.8rem; letter-spacing: 0.04em; }
+
+/* Product items */
+.panel-product {
+  display: flex; align-items: center; gap: 0.9rem;
+  padding: 0.75rem 0; border-bottom: 1px solid var(--border);
+}
+.panel-product:last-child { border-bottom: none; }
+.panel-product-img {
+  width: 58px; height: 68px; border-radius: 8px; object-fit: cover;
+  background: var(--bg-section); flex-shrink: 0; display: block;
+}
+.panel-product-img-placeholder {
+  width: 58px; height: 68px; border-radius: 8px;
+  background: var(--bg-section); flex-shrink: 0;
+}
+.panel-product-name { font-size: 0.86rem; font-weight: 600; margin-bottom: 0.25rem; }
+.panel-product-meta { font-size: 0.76rem; color: var(--text-muted); }
+.panel-product-price { font-size: 0.86rem; font-weight: 600; margin-left: auto; flex-shrink: 0; }
+
+/* Proof of payment */
+.proof-box {
+  margin-top: 0.75rem; border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--border); cursor: pointer; position: relative;
+  background: var(--bg-section);
+}
+.proof-box img {
+  display: block; width: 100%; max-height: 200px; object-fit: cover;
+  transition: opacity 0.2s;
+}
+.proof-box:hover img { opacity: 0.85; }
+.proof-box-overlay {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0); transition: background 0.2s; border-radius: 10px;
+}
+.proof-box:hover .proof-box-overlay { background: rgba(0,0,0,0.12); }
+.proof-zoom-hint {
+  background: rgba(0,0,0,0.6); color: #fff; font-size: 0.72rem; font-weight: 500;
+  padding: 0.3rem 0.7rem; border-radius: 20px; opacity: 0; transition: opacity 0.2s;
+  letter-spacing: 0.04em;
+}
+.proof-box:hover .proof-zoom-hint { opacity: 1; }
+.proof-none { font-size: 0.8rem; color: var(--text-muted); font-style: italic; padding: 0.5rem 0; }
+
+/* Image lightbox */
+.lightbox-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+  z-index: 900; align-items: center; justify-content: center; padding: 1rem;
+}
+.lightbox-overlay.open { display: flex; }
+.lightbox-img { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 8px; }
+.lightbox-close {
+  position: absolute; top: 1.2rem; right: 1.2rem;
+  background: rgba(255,255,255,0.15); color: #fff; border: none;
+  border-radius: 50%; width: 38px; height: 38px; font-size: 1.1rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.lightbox-close:hover { background: rgba(255,255,255,0.3); }
+
+/* Total row */
+.panel-total-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 0.9rem 0 0; margin-top: 0.5rem; border-top: 1px solid var(--border);
+  font-weight: 600;
+}
+.panel-total-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+.panel-total-amount { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 0.06em; }
+
+/* Status footer */
+.panel-footer {
+  flex-shrink: 0; border-top: 1px solid var(--border);
+  padding: 1.2rem 1.6rem; background: var(--bg-card);
+}
+.panel-footer-title {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 0.9rem;
+}
+.panel-status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; }
+.panel-status-group { display: flex; flex-direction: column; gap: 0.3rem; }
+.panel-status-label {
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+.panel-status-select {
+  background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px;
+  padding: 0.65rem 0.85rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
+  color: var(--text); outline: none; cursor: pointer; transition: border-color 0.2s;
+}
+.panel-status-select:focus { border-color: var(--accent); }
+.btn-panel-save {
+  width: 100%; background: var(--accent); color: #fff; border: none;
+  border-radius: 8px; padding: 0.8rem; font-family: 'DM Sans', sans-serif;
+  font-size: 0.86rem; font-weight: 500; letter-spacing: 0.06em;
+  cursor: pointer; transition: opacity 0.2s, transform 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+}
+.btn-panel-save:hover:not(:disabled) { opacity: 0.87; transform: translateY(-1px); }
+.btn-panel-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-panel-save svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
+.save-success-badge {
+  display: none; align-items: center; gap: 0.4rem;
+  font-size: 0.78rem; color: var(--green); font-weight: 500; margin-top: 0.5rem;
+  justify-content: center;
+}
+.save-success-badge.show { display: flex; }
+.save-success-badge svg { width: 14px; height: 14px; stroke: var(--green); fill: none; stroke-width: 2.5; }
+
+/* Quick action buttons */
+.quick-actions {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+.btn-approve {
+  background: var(--green); color: #fff; border: none; border-radius: 8px;
+  padding: 0.75rem; font-family: 'DM Sans', sans-serif; font-size: 0.84rem;
+  font-weight: 600; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; gap: 0.4rem; transition: opacity 0.2s;
+}
+.btn-approve:hover:not(:disabled) { opacity: 0.85; }
+.btn-reject {
+  background: var(--red); color: #fff; border: none; border-radius: 8px;
+  padding: 0.75rem; font-family: 'DM Sans', sans-serif; font-size: 0.84rem;
+  font-weight: 600; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; gap: 0.4rem; transition: opacity 0.2s;
+}
+.btn-reject:hover:not(:disabled) { opacity: 0.85; }
+.btn-approve svg, .btn-reject svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+.btn-approve:disabled, .btn-reject:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Reservation expiry banner */
+.expiry-banner {
+  border-radius: 8px; padding: 0.55rem 0.85rem; font-size: 0.78rem;
+  display: flex; align-items: center; gap: 0.45rem; margin-bottom: 0.9rem;
+}
+.expiry-banner.urgent { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.3);  color: #dc2626; }
+.expiry-banner.warning { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: #b45309; }
+.expiry-banner.ok      { background: rgba(34,197,94,0.1);  border: 1px solid rgba(34,197,94,0.3);  color: #15803d; }
+.expiry-banner.neutral { background: var(--bg-section); border: 1px solid var(--border); color: var(--text-muted); }
+.expiry-banner svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- sidebar injected by admin-layout.js -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="page-title">Orders</div>
+    </div>
+
+    <!-- Filter buttons -->
+    <div class="order-filters">
+      <button class="filter-btn active" onclick="filterOrders('all', this)">All Orders</button>
+      <button class="filter-btn" onclick="filterOrders('Pending Verification', this)">Pending Verification</button>
+      <button class="filter-btn" onclick="filterOrders('Processing', this)">Processing</button>
+      <button class="filter-btn" onclick="filterOrders('Shipping', this)">Shipping</button>
+      <button class="filter-btn" onclick="filterOrders('Shipped', this)">Shipped</button>
+      <button class="filter-btn" onclick="filterOrders('Completed', this)">Completed</button>
+    </div>
+
+    <!-- Orders table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Products</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Order Status</th>
+            <th>Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="orders-tbody">
+          <tr class="empty-row"><td colspan="8">Loading orders…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══ ORDER DETAIL SIDE PANEL ══ -->
+<div class="order-panel-overlay" id="panel-overlay" onclick="closePanelFromOverlay(event)"></div>
+
+<aside class="order-panel" id="order-panel">
+
+  <!-- Header -->
+  <div class="panel-header">
+    <div class="panel-header-left">
+      <div class="panel-order-id" id="panel-order-id">Order —</div>
+      <div class="panel-order-date" id="panel-order-date">—</div>
+    </div>
+    <button class="panel-close" onclick="closeOrderPanel()" title="Close">
+      <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Scrollable body -->
+  <div class="panel-body">
+
+    <!-- ① Customer Information -->
+    <div class="panel-section">
+      <div class="panel-section-title">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Customer Information
+      </div>
+      <div class="panel-row">
+        <span class="panel-key">Name</span>
+        <span class="panel-val" id="panel-cust-name">—</span>
+      </div>
+      <div class="panel-row">
+        <span class="panel-key">Email</span>
+        <span class="panel-val" id="panel-cust-email">—</span>
+      </div>
+      <div class="panel-row">
+        <span class="panel-key">Contact</span>
+        <span class="panel-val" id="panel-cust-phone">—</span>
+      </div>
+      <div class="panel-row">
+        <span class="panel-key">Shipping Address</span>
+        <span class="panel-val" id="panel-cust-address">—</span>
+      </div>
+    </div>
+
+    <!-- ② Ordered Products -->
+    <div class="panel-section">
+      <div class="panel-section-title">
+        <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+        Ordered Products
+      </div>
+      <div id="panel-products-list"></div>
+      <div class="panel-total-row">
+        <span class="panel-total-label">Total Amount</span>
+        <span class="panel-total-amount" id="panel-total">₱0</span>
+      </div>
+    </div>
+
+    <!-- ③ Payment Information -->
+    <div class="panel-section">
+      <div class="panel-section-title">
+        <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Payment Information
+      </div>
+      <div class="panel-row">
+        <span class="panel-key">Method</span>
+        <span class="panel-val" id="panel-pay-method">—</span>
+      </div>
+      <div class="panel-row">
+        <span class="panel-key">Reference #</span>
+        <span class="panel-val mono" id="panel-pay-ref">—</span>
+      </div>
+      <div class="panel-row">
+        <span class="panel-key">Payment Status</span>
+        <span class="panel-val" id="panel-pay-status-badge">—</span>
+      </div>
+      <div style="margin-top:0.8rem;">
+        <div style="font-size:0.72rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.5rem;">
+          Proof of Payment
+        </div>
+        <div id="panel-proof-wrap">
+          <p class="proof-none">Screenshot not yet uploaded.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ④ Order Information -->
+    <div class="panel-section">
+      <div class="panel-section-title">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Order Information
+      </div>
+      <div class="panel-row">
+        <span class="panel-key">Order ID</span>
+        <span class="panel-val mono" id="panel-ord-id">—</span>
+      </div>
+      <div class="panel-row">
+        <span class="panel-key">Date Ordered</span>
+        <span class="panel-val" id="panel-ord-date-info">—</span>
+      </div>
+      <div class="panel-row">
+        <span class="panel-key">Total Amount</span>
+        <span class="panel-val" id="panel-ord-total-info">—</span>
+      </div>
+      <div class="panel-row">
+        <span class="panel-key">Order Status</span>
+        <span class="panel-val" id="panel-ord-status-badge">—</span>
+      </div>
+      <div class="panel-row">
+        <span class="panel-key">Reservation Expires</span>
+        <span class="panel-val" id="panel-expiry">—</span>
+      </div>
+    </div>
+
+  </div><!-- /panel-body -->
+
+  <!-- ⑤ Status Management Footer -->
+  <div class="panel-footer">
+
+    <!-- Expiry banner (shown for pending orders) -->
+    <div class="expiry-banner neutral" id="expiry-banner" style="display:none;">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span id="expiry-banner-msg"></span>
+    </div>
+
+    <!-- Quick approve / reject (shown only for Pending Verification orders) -->
+    <div class="quick-actions" id="quick-actions" style="display:none;">
+      <button class="btn-approve" id="btn-approve" onclick="quickApprove()">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Approve Payment
+      </button>
+      <button class="btn-reject" id="btn-reject" onclick="quickReject()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Reject Payment
+      </button>
+    </div>
+
+    <div class="panel-footer-title" style="margin-top:0.2rem;">Manual Status Override</div>
+    <div class="panel-status-grid">
+      <div class="panel-status-group">
+        <label class="panel-status-label">Payment Status</label>
+        <select class="panel-status-select" id="panel-pay-select">
+          <option value="Pending Verification">Pending Verification</option>
+          <option value="Verified">Verified</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="panel-status-group">
+        <label class="panel-status-label">Order Status</label>
+        <select class="panel-status-select" id="panel-ord-select">
+          <option value="Pending Verification">Pending Verification</option>
+          <option value="Processing">Processing</option>
+          <option value="Shipping">Shipping</option>
+          <option value="Shipped">Shipped</option>
+          <option value="Completed">Completed</option>
+          <option value="Rejected">Rejected</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </div>
+    </div>
+    <!-- PHP integration point: POST to api/orders/update_status.php -->
+    <button class="btn-panel-save" id="save-status-btn" onclick="saveOrderStatus()">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      Save Changes
+    </button>
+    <div class="save-success-badge" id="save-success">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      Status updated successfully
+    </div>
+  </div>
+
+</aside>
+
+<!-- Proof of payment lightbox -->
+<div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img class="lightbox-img" id="lightbox-img" src="" alt="Proof of Payment">
+</div>
+
+<script src="admin-data.js"></script>
+<script src="admin-layout.js?v=2"></script>
+<script>
+initAdminLayout('orders');
+checkAdminAuth();
+
+let currentOrderFilter = 'all';
+let currentOrderId     = null;
+
+fetchOrders(renderOrdersTable);
+
+/* ════════════════════════════════════════════════════════════════
+   TABLE
+════════════════════════════════════════════════════════════════ */
+function renderOrdersTable(list) {
+  const tbody = document.getElementById('orders-tbody');
+  if (!list || !list.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No orders found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(o => {
+    const names = o.products.map(p => p.name).join(', ');
+    const short = names.length > 34 ? names.substring(0, 34) + '…' : names;
+    const date  = o.dateOrdered ? o.dateOrdered.split(' ')[0] : '—';
+    return `
+      <tr>
+        <td><strong style="font-family:'DM Sans',sans-serif;">${o.id}</strong></td>
+        <td>${escHtml(o.user.name)}</td>
+        <td title="${escHtml(names)}">${escHtml(short)}</td>
+        <td>₱${Number(o.totalAmount).toLocaleString()}</td>
+        <td>${paymentStatusBadge(o.payment.status)}</td>
+        <td>${orderStatusBadge(o.orderStatus)}</td>
+        <td style="white-space:nowrap;">${date}</td>
+        <td>
+          <button class="btn-view" onclick="openOrderPanel('${escAttr(o.id)}')">
+            View Details
+          </button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+function filterOrders(status, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentOrderFilter = status;
+  const filtered = status === 'all'
+    ? orders
+    : orders.filter(o => o.orderStatus === status || o.payment.status === status);
+  renderOrdersTable(filtered);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   PANEL OPEN / CLOSE
+════════════════════════════════════════════════════════════════ */
+function openOrderPanel(orderId) {
+  const o = orders.find(x => String(x.id) === String(orderId));
+  if (!o) { showToast('Order not found.'); return; }
+  currentOrderId = orderId;
+
+  /* ── Header ── */
+  document.getElementById('panel-order-id').textContent  = `Order ${o.id}`;
+  document.getElementById('panel-order-date').textContent =
+    o.dateOrdered ? 'Placed on ' + o.dateOrdered : '—';
+
+  /* ── Customer ── */
+  document.getElementById('panel-cust-name').textContent    = o.user.name    || '—';
+  document.getElementById('panel-cust-email').textContent   = o.user.email   || '—';
+  document.getElementById('panel-cust-phone').textContent   = o.user.phone   || 'Not provided';
+  document.getElementById('panel-cust-address').textContent = o.user.address || 'Not provided';
+
+  /* ── Products ── */
+  document.getElementById('panel-products-list').innerHTML = o.products.map(p => {
+    const img = p.coverImage || p.image || '';
+    return `
+      <div class="panel-product">
+        ${img
+          ? `<img class="panel-product-img" src="${escHtml(img)}" alt="${escHtml(p.name)}" loading="lazy">`
+          : `<div class="panel-product-img-placeholder"></div>`}
+        <div style="flex:1;min-width:0;">
+          <div class="panel-product-name">${escHtml(p.name)}</div>
+          <div class="panel-product-meta">Size: ${escHtml(p.size || '—')}</div>
+        </div>
+        <div class="panel-product-price">₱${Number(p.price).toLocaleString()}</div>
+      </div>`;
+  }).join('');
+  document.getElementById('panel-total').textContent = `₱${Number(o.totalAmount).toLocaleString()}`;
+
+  /* ── Payment ── */
+  document.getElementById('panel-pay-method').textContent        = o.payment.method || 'GCash';
+  document.getElementById('panel-pay-ref').textContent           = o.payment.referenceNumber || 'Not provided';
+  document.getElementById('panel-pay-status-badge').innerHTML    = paymentStatusBadge(o.payment.status);
+
+  const proofWrap = document.getElementById('panel-proof-wrap');
+  if (o.payment.proofImage) {
+    proofWrap.innerHTML = `
+      <div class="proof-box" onclick="openLightbox('${escAttr(o.payment.proofImage)}')">
+        <img src="${escHtml(o.payment.proofImage)}" alt="Proof of Payment">
+        <div class="proof-box-overlay">
+          <span class="proof-zoom-hint">Click to enlarge</span>
+        </div>
+      </div>`;
+  } else {
+    proofWrap.innerHTML = '<p class="proof-none">Screenshot not yet uploaded.</p>';
+  }
+
+  /* ── Order info + expiry ── */
+  document.getElementById('panel-ord-id').textContent          = o.id;
+  document.getElementById('panel-ord-date-info').textContent   = o.dateOrdered || '—';
+  document.getElementById('panel-ord-total-info').textContent  = `₱${Number(o.totalAmount).toLocaleString()}`;
+  document.getElementById('panel-ord-status-badge').innerHTML  = orderStatusBadge(o.orderStatus);
+
+  /* Reservation expiry */
+  _renderExpiryBanner(o);
+
+  /* ── Status selects ── */
+  document.getElementById('panel-pay-select').value = o.payment.status;
+  document.getElementById('panel-ord-select').value = o.orderStatus;
+
+  /* Show quick actions only for orders awaiting verification */
+  const isPending = o.orderStatus === 'Pending Verification' || o.payment.status === 'Pending Verification';
+  document.getElementById('quick-actions').style.display = isPending ? 'grid' : 'none';
+
+  /* Reset save state */
+  _resetSaveBtn();
+
+  /* Open panel */
+  document.getElementById('panel-overlay').classList.add('open');
+  document.getElementById('order-panel').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeOrderPanel() {
+  document.getElementById('panel-overlay').classList.remove('open');
+  document.getElementById('order-panel').classList.remove('open');
+  document.body.style.overflow = '';
+  currentOrderId = null;
+}
+
+function closePanelFromOverlay(e) {
+  /* Only close when clicking the dark overlay itself, not the panel */
+  if (e.target === document.getElementById('panel-overlay')) closeOrderPanel();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SAVE STATUS
+════════════════════════════════════════════════════════════════ */
+async function saveOrderStatus() {
+  const o = orders.find(x => String(x.id) === String(currentOrderId));
+  if (!o) return;
+
+  const newPayStatus = document.getElementById('panel-pay-select').value;
+  const newOrdStatus = document.getElementById('panel-ord-select').value;
+
+  const btn = document.getElementById('save-status-btn');
+  btn.disabled    = true;
+  btn.innerHTML   = '<svg viewBox="0 0 24 24" style="animation:spin 0.8s linear infinite"><polyline points="20 6 9 17 4 12"/></svg> Saving…';
+
+  try {
+    const data = await updateOrderStatus(currentOrderId, newOrdStatus, newPayStatus);
+    if (data.error) { showToast(data.error); _resetSaveBtn(); return; }
+
+    /* Update local state */
+    o.payment.status = newPayStatus;
+    o.orderStatus    = newOrdStatus;
+
+    /* Refresh badges inside panel */
+    document.getElementById('panel-pay-status-badge').innerHTML = paymentStatusBadge(newPayStatus);
+    document.getElementById('panel-ord-status-badge').innerHTML  = orderStatusBadge(newOrdStatus);
+
+    /* Refresh table row */
+    const filtered = currentOrderFilter === 'all'
+      ? orders
+      : orders.filter(x => x.orderStatus === currentOrderFilter || x.payment.status === currentOrderFilter);
+    renderOrdersTable(filtered);
+
+    /* Show success state */
+    btn.disabled  = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Save Changes';
+    const badge = document.getElementById('save-success');
+    badge.classList.add('show');
+    setTimeout(() => badge.classList.remove('show'), 3000);
+
+  } catch(err) {
+    showToast('Failed to update status. Please try again.');
+    console.error(err);
+    _resetSaveBtn();
+  }
+}
+
+function _resetSaveBtn() {
+  const btn = document.getElementById('save-status-btn');
+  btn.disabled  = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Save Changes';
+  document.getElementById('save-success').classList.remove('show');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   EXPIRY BANNER
+════════════════════════════════════════════════════════════════ */
+function _renderExpiryBanner(o) {
+  const expiryEl  = document.getElementById('panel-expiry');
+  const bannerEl  = document.getElementById('expiry-banner');
+  const bannerMsg = document.getElementById('expiry-banner-msg');
+
+  const expiry    = o.reservationExpiresAt || o.reservation_expires_at || null;
+  const isActive  = ['Pending Verification','Pending Payment'].includes(o.orderStatus);
+
+  if (!expiry || !isActive) {
+    expiryEl.textContent    = expiry ? expiry.split('T')[0] : '—';
+    bannerEl.style.display  = 'none';
+    return;
+  }
+
+  const expiresAt  = new Date(expiry);
+  const now        = new Date();
+  const msLeft     = expiresAt - now;
+  const hoursLeft  = msLeft / (1000 * 60 * 60);
+
+  expiryEl.textContent = expiry.replace('T', ' ').substring(0, 16);
+
+  if (msLeft <= 0) {
+    bannerEl.className  = 'expiry-banner urgent';
+    bannerMsg.textContent = 'Reservation has EXPIRED — product released back to available.';
+    bannerEl.style.display = 'flex';
+  } else if (hoursLeft < 4) {
+    bannerEl.className  = 'expiry-banner urgent';
+    bannerMsg.textContent = `Expires in ${Math.ceil(hoursLeft)} hour(s) — review soon!`;
+    bannerEl.style.display = 'flex';
+  } else if (hoursLeft < 12) {
+    bannerEl.className  = 'expiry-banner warning';
+    bannerMsg.textContent = `Expires in ~${Math.round(hoursLeft)} hours.`;
+    bannerEl.style.display = 'flex';
+  } else {
+    bannerEl.className  = 'expiry-banner ok';
+    bannerMsg.textContent = `${Math.round(hoursLeft)} hours remaining to review.`;
+    bannerEl.style.display = 'flex';
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   QUICK APPROVE / REJECT
+════════════════════════════════════════════════════════════════ */
+async function quickApprove() {
+  const o = orders.find(x => String(x.id) === String(currentOrderId));
+  if (!o) return;
+
+  const btnA = document.getElementById('btn-approve');
+  const btnR = document.getElementById('btn-reject');
+  btnA.disabled = true; btnR.disabled = true;
+  btnA.textContent = 'Approving…';
+
+  try {
+    /* Verified payment → product becomes sold, order → Processing */
+    const data = await updateOrderStatus(currentOrderId, 'Processing', 'Verified');
+    if (data.error) { showToast(data.error); return; }
+
+    o.payment.status = 'Verified';
+    o.orderStatus    = 'Processing';
+
+    document.getElementById('panel-pay-status-badge').innerHTML = paymentStatusBadge('Verified');
+    document.getElementById('panel-ord-status-badge').innerHTML  = orderStatusBadge('Processing');
+    document.getElementById('panel-pay-select').value = 'Verified';
+    document.getElementById('panel-ord-select').value = 'Processing';
+    document.getElementById('quick-actions').style.display = 'none';
+    document.getElementById('expiry-banner').style.display = 'none';
+
+    _refreshTable();
+    showToast('Payment approved! Product marked as sold.');
+
+  } catch(e) {
+    showToast('Failed to approve. Please try again.');
+    console.error(e);
+  } finally {
+    btnA.disabled = false; btnR.disabled = false;
+    btnA.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Approve Payment';
+    btnR.innerHTML = '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Reject Payment';
+  }
+}
+
+async function quickReject() {
+  const o = orders.find(x => String(x.id) === String(currentOrderId));
+  if (!o) return;
+
+  openConfirm(
+    'Reject Payment?',
+    `Reject the payment for Order ${o.id}? The product will be released back to available and the buyer will need to place a new order.`,
+    async () => {
+      const btnA = document.getElementById('btn-approve');
+      const btnR = document.getElementById('btn-reject');
+      btnA.disabled = true; btnR.disabled = true;
+      btnR.textContent = 'Rejecting…';
+
+      try {
+        /* Rejected payment → product released back to available */
+        const data = await updateOrderStatus(currentOrderId, 'Rejected', 'Rejected');
+        if (data.error) { showToast(data.error); return; }
+
+        o.payment.status = 'Rejected';
+        o.orderStatus    = 'Rejected';
+
+        document.getElementById('panel-pay-status-badge').innerHTML = paymentStatusBadge('Rejected');
+        document.getElementById('panel-ord-status-badge').innerHTML  = orderStatusBadge('Rejected');
+        document.getElementById('panel-pay-select').value = 'Rejected';
+        document.getElementById('panel-ord-select').value = 'Rejected';
+        document.getElementById('quick-actions').style.display = 'none';
+        document.getElementById('expiry-banner').style.display = 'none';
+
+        _refreshTable();
+        showToast('Payment rejected. Product is available again.');
+
+      } catch(e) {
+        showToast('Failed to reject. Please try again.');
+        console.error(e);
+      } finally {
+        btnA.disabled = false; btnR.disabled = false;
+        btnA.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Approve Payment';
+        btnR.innerHTML = '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Reject Payment';
+      }
+    },
+    'Reject', true
+  );
+}
+
+function _refreshTable() {
+  const filtered = currentOrderFilter === 'all'
+    ? orders
+    : orders.filter(x => x.orderStatus === currentOrderFilter || x.payment.status === currentOrderFilter);
+  renderOrdersTable(filtered);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   PROOF OF PAYMENT LIGHTBOX
+════════════════════════════════════════════════════════════════ */
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  /* Restore body scroll only if panel is also closed */
+  if (!document.getElementById('order-panel').classList.contains('open')) {
+    document.body.style.overflow = '';
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   UTILITIES
+════════════════════════════════════════════════════════════════ */
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) {
+  return String(s ?? '').replace(/'/g, '&#39;');
+}
+
+/* Keyboard: Escape closes panel or lightbox */
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('lightbox').classList.contains('open')) { closeLightbox(); return; }
+  if (document.getElementById('order-panel').classList.contains('open')) closeOrderPanel();
+});
+
+/* CSS spin keyframe for loading button */
+const style = document.createElement('style');
+style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+document.head.appendChild(style);
+</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Carousell Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+
+<div class="shell">
+  <!-- sidebar injected by admin-layout.js -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="page-title">Dashboard</div>
+    </div>
+
+    <div class="dash-grid">
+      <div class="dash-card">
+        <div class="dash-card-label">Total Products</div>
+        <div class="dash-card-value" id="stat-products">0</div>
+        <div class="dash-card-sub">in catalog</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-label">Featured</div>
+        <div class="dash-card-value" id="stat-featured">0</div>
+        <div class="dash-card-sub">of 4 slots used</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-label">Total Orders</div>
+        <div class="dash-card-value" id="stat-orders">0</div>
+        <div class="dash-card-sub">all time</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-label">Pending</div>
+        <div class="dash-card-value" id="stat-pending">0</div>
+        <div class="dash-card-sub">need attention</div>
+      </div>
+    </div>
+
+    <!-- PHP integration point: replace JS stats with server-rendered values from api/dashboard.php -->
+    <p style="font-size:0.84rem;color:var(--text-muted);font-style:italic;">
+      Connect the PHP + MySQL backend to see live revenue and customer analytics.
+    </p>
+
+  </main>
+</div>
+
+<script src="admin-data.js"></script>
+<script src="admin-layout.js?v=2"></script>
+<script>
+initAdminLayout('dashboard');
+checkAdminAuth();
+
+Promise.all([
+  fetchProducts(),
+  fetchOrders(),
+]).then(() => {
+  document.getElementById('stat-products').textContent = products.length;
+  document.getElementById('stat-featured').textContent = products.filter(p => p.featured).length;
+  document.getElementById('stat-orders').textContent   = orders.length;
+  document.getElementById('stat-pending').textContent  = orders.filter(o => o.payment && o.payment.status === 'Pending Verification').length;
+}).catch(err => {
+  console.error('Dashboard load error:', err);
+});
+</script>
+</body>
+</html>

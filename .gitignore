@@ -1,0 +1,24 @@
+# Uploaded product & proof images (user data, potentially large)
+uploads/products/*
+!uploads/products/.htaccess
+
+# PHP session files
+/tmp/
+*.session
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor folders
+.idea/
+*.suo
+*.user
+
+# Logs
+*.log
+error_log
+
+# XAMPP / local env overrides (create api/config.local.php for local passwords)
+api/config.local.php

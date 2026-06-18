@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Categories — Carousell Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin-styles.css">
+<style>
+/* ── Category cards grid ── */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.cat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.2rem 1.4rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  position: relative;
+  transition: box-shadow 0.2s;
+}
+.cat-card:hover { box-shadow: var(--shadow-md); }
+.cat-card-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+}
+.cat-card-desc {
+  font-size: 0.77rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  flex: 1;
+}
+.cat-card-meta {
+  font-size: 0.72rem;
+  color: var(--text-light);
+  margin-top: 0.3rem;
+}
+.cat-card-del {
+  position: absolute;
+  top: 0.7rem; right: 0.7rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-light);
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+}
+.cat-card-del:hover { background: rgba(239,68,68,0.1); color: var(--red); }
+.cat-card-del svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+/* ── Add category form card ── */
+.add-cat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.6rem;
+  max-width: 580px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 2rem;
+}
+.add-cat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.85rem;
+  align-items: flex-end;
+}
+.cat-alert {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.82rem;
+  margin-top: 0.9rem;
+}
+.cat-alert.show { display: flex; }
+.cat-alert svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; flex-shrink: 0; }
+.cat-alert.err { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #dc2626; }
+.cat-alert.ok  { background: rgba(34,197,94,0.1);  border: 1px solid rgba(34,197,94,0.3);  color: #15803d; }
+
+/* ── Empty state ── */
+.cat-empty {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+  font-style: italic;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- Sidebar injected by admin-layout.js -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="page-title">Categories</div>
+    </div>
+
+    <!-- ── Add Category Form ── -->
+    <div class="add-cat-card">
+      <div class="form-label" style="margin-bottom:0.8rem;display:block;">Add New Category</div>
+      <div class="add-cat-row">
+        <div class="form-group">
+          <label class="form-label" for="new-name">Name <span style="color:var(--red);">*</span></label>
+          <input class="form-input" type="text" id="new-name"
+                 placeholder="e.g. Vintage Tops" maxlength="100"
+                 onkeydown="if(event.key==='Enter') addCategory()">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="new-desc">Description (optional)</label>
+          <input class="form-input" type="text" id="new-desc"
+                 placeholder="Short description"
+                 onkeydown="if(event.key==='Enter') addCategory()">
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="visibility:hidden;">Add</label>
+          <button class="btn-add" id="add-btn" onclick="addCategory()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Add
+          </button>
+        </div>
+      </div>
+      <div class="cat-alert err" id="ca-error">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="ca-error-msg"></span>
+      </div>
+      <div class="cat-alert ok" id="ca-success">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        <span id="ca-success-msg"></span>
+      </div>
+    </div>
+
+    <!-- ── Category Grid ── -->
+    <div class="section-label">Existing Categories</div>
+    <div class="cat-grid" id="cat-grid">
+      <div class="cat-empty">Loading categories…</div>
+    </div>
+
+    <!-- Note about fixed sizes -->
+    <div style="background:var(--bg-section);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;max-width:580px;">
+      <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.6rem;">
+        Fixed Sizes — predefined, cannot be changed
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:0.4rem;" data-sizes-note></div>
+    </div>
+
+  </main>
+</div>
+
+<script src="admin-data.js"></script>
+<script src="admin-layout.js?v=2"></script>
+<script>
+initAdminLayout('categories');
+checkAdminAuth();
+
+let categories = [];
+
+/* ════════════════════════════════════════════════════════════════
+   LOAD & RENDER
+════════════════════════════════════════════════════════════════ */
+async function loadCategories() {
+  categories = await fetchAdminCategories();
+  renderGrid(categories);
+}
+
+function renderGrid(list) {
+  const grid = document.getElementById('cat-grid');
+
+  if (!list.length) {
+    grid.innerHTML = '<div class="cat-empty">No categories yet. Add your first one above.</div>';
+    return;
+  }
+
+  grid.innerHTML = list.map(c => `
+    <div class="cat-card" id="cat-${c.category_id}">
+      <button class="cat-card-del" onclick="deleteCategory(${c.category_id}, '${escH(c.name)}')" title="Delete category">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
+      <div class="cat-card-name">${escH(c.name)}</div>
+      <div class="cat-card-desc">${escH(c.description || '—')}</div>
+    </div>`).join('');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ADD CATEGORY
+   PHP integration point: POST api/categories/create.php
+════════════════════════════════════════════════════════════════ */
+async function addCategory() {
+  const name = document.getElementById('new-name').value.trim();
+  const desc = document.getElementById('new-desc').value.trim();
+  catAlert('', '');
+
+  if (!name) { catAlert('err', 'Category name is required.'); return; }
+
+  const btn = document.getElementById('add-btn');
+  btn.style.opacity = '0.6'; btn.style.pointerEvents = 'none';
+
+  try {
+    const data = await createAdminCategory(name, desc);
+    if (data.error) { catAlert('err', data.error); return; }
+
+    document.getElementById('new-name').value = '';
+    document.getElementById('new-desc').value = '';
+    catAlert('ok', `"${name}" added successfully!`);
+    await loadCategories();
+
+  } catch(e) {
+    catAlert('err', 'Network error. Please try again.');
+    console.error(e);
+  } finally {
+    btn.style.opacity = ''; btn.style.pointerEvents = '';
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   DELETE CATEGORY
+   PHP integration point: POST api/categories/delete.php
+════════════════════════════════════════════════════════════════ */
+function deleteCategory(id, name) {
+  openConfirm(
+    'Delete Category?',
+    `Delete "${name}"? Products using this category will have their category cleared.`,
+    async () => {
+      try {
+        const data = await deleteAdminCategory(id);
+        if (data.error) { showToast(data.error); return; }
+        showToast(`"${name}" deleted.`);
+        await loadCategories();
+      } catch(e) {
+        showToast('Failed to delete category.');
+        console.error(e);
+      }
+    },
+    'Delete', true
+  );
+}
+
+/* ── Helpers ── */
+function catAlert(type, msg) {
+  const err = document.getElementById('ca-error');
+  const ok  = document.getElementById('ca-success');
+  err.classList.remove('show'); ok.classList.remove('show');
+  if (type === 'err') { document.getElementById('ca-error-msg').textContent = msg;   err.classList.add('show'); }
+  if (type === 'ok')  { document.getElementById('ca-success-msg').textContent = msg; ok.classList.add('show');
+    clearTimeout(ok._t); ok._t = setTimeout(() => ok.classList.remove('show'), 3500);
+  }
+}
+function escH(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* Render the fixed sizes note properly (the template literal in HTML can't use map) */
+document.addEventListener('DOMContentLoaded', () => {
+  const sizeNote = document.querySelector('[data-sizes-note]');
+  if (sizeNote) {
+    sizeNote.innerHTML = ['XS','S','M','L','XL','XXL','Free Size'].map(s =>
+      `<span style="background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:0.15rem 0.55rem;font-size:0.78rem;font-weight:500;">${s}</span>`
+    ).join('');
+  }
+});
+
+loadCategories();
+</script>
+</body>
+</html>
