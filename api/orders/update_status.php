@@ -2,49 +2,63 @@
 /* ════════════════════════════════════════════════════════════════
    api/orders/update_status.php — Update order + payment status (admin)
 
-   Product status is automatically managed based on payment status:
-     payment → Verified  : product → sold      (confirmed sale)
-     payment → Rejected  : product → available  (released back for others)
+   Payment flow (Payments page):
+     Pending Verification → Approved  (products sold, order → Processing)
+     Pending Verification → Rejected  (products released, order → Payment Rejected)
+
+   Fulfillment flow (Orders page — approved payments only):
+     Processing → Shipping → Shipped → Completed
+     Any stage  → Cancelled
 ════════════════════════════════════════════════════════════════ */
 require_once dirname(__DIR__) . '/config.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') respondError('Method not allowed.', 405);
 requireAdmin();
 
-$body          = getJsonBody();
-$orderId       = isset($body['order_id'])     ? (int)$body['order_id']         : 0;
-$orderStatus   = trim($body['order_status']   ?? '');
-$paymentStatus = trim($body['payment_status'] ?? '');
+$body            = getJsonBody();
+$orderId         = isset($body['order_id'])       ? (int)$body['order_id']         : 0;
+$orderStatus     = trim($body['order_status']     ?? '');
+$paymentStatus   = trim($body['payment_status']   ?? '');
+$rejectionReason = trim($body['rejection_reason'] ?? '');
 
 if ($orderId <= 0) respondError('Valid order_id is required.');
 
 $validOrderStatuses = [
-    'Pending Verification','Processing','Shipping','Shipped',
-    'Completed','Rejected','Cancelled',
+    'Payment Verification',
+    'Payment Rejected',
+    'Processing',
+    'Shipping',
+    'Shipped',
+    'Completed',
+    'Cancelled',
+    /* legacy */
+    'Payment Accepted',
+    'Pending Verification',
+    'Rejected',
 ];
-$validPaymentStatuses = ['Pending Verification','Verified','Rejected'];
+$validPaymentStatuses = ['Pending Verification', 'Approved', 'Rejected'];
 
 if ($orderStatus   !== '' && !in_array($orderStatus,   $validOrderStatuses))   respondError('Invalid order status.');
 if ($paymentStatus !== '' && !in_array($paymentStatus, $validPaymentStatuses)) respondError('Invalid payment status.');
+
+/* Normalize legacy order statuses */
+$legacyOrderMap = [
+    'Rejected'             => 'Payment Rejected',
+    'Pending Verification' => 'Payment Verification',
+    'Payment Accepted'     => 'Processing',
+];
+if (isset($legacyOrderMap[$orderStatus])) $orderStatus = $legacyOrderMap[$orderStatus];
 
 $db = getDB();
 $db->beginTransaction();
 
 try {
-    /* Verify order exists */
     $chk = $db->prepare('SELECT order_id FROM orders WHERE order_id = ? LIMIT 1');
     $chk->execute([$orderId]);
     if (!$chk->fetch()) respondError('Order not found.', 404);
 
-    /* ── Update order status ── */
-    if ($orderStatus !== '') {
-        $db->prepare('UPDATE orders SET status = ? WHERE order_id = ?')
-           ->execute([$orderStatus, $orderId]);
-    }
-
-    /* ── Update payment status + trigger product status change ── */
+    /* ── Step 1: Update payments table ── */
     if ($paymentStatus !== '') {
-        /* Upsert payment row */
         $pay = $db->prepare('SELECT payment_id FROM payments WHERE order_id = ? LIMIT 1');
         $pay->execute([$orderId]);
         if ($pay->fetch()) {
@@ -54,46 +68,57 @@ try {
             $db->prepare('INSERT INTO payments (order_id, status) VALUES (?, ?)')
                ->execute([$orderId, $paymentStatus]);
         }
+    }
 
-        /* ── VERIFIED: mark products as sold (confirmed purchase) ── */
-        if ($paymentStatus === 'Verified') {
-            $db->prepare(
-                "UPDATE products p
-                 INNER JOIN order_items oi ON oi.product_id = p.product_id
-                 SET p.status = 'sold'
-                 WHERE oi.order_id = ?"
-            )->execute([$orderId]);
+    /* ── Step 2: Product side-effects + receipt generation ── */
+    if ($paymentStatus === 'Approved') {
+        $db->prepare(
+            "UPDATE products p
+             INNER JOIN order_items oi ON oi.product_id = p.product_id
+             SET p.status = 'sold'
+             WHERE oi.order_id = ?"
+        )->execute([$orderId]);
 
-            /* Also advance order to Processing if it's still Pending Verification */
-            if ($orderStatus === '' || $orderStatus === 'Pending Verification') {
-                $db->prepare(
-                    "UPDATE orders SET status = 'Processing'
-                     WHERE order_id = ? AND status = 'Pending Verification'"
-                )->execute([$orderId]);
-            }
-        }
+        /* Auto-generate receipt — INSERT IGNORE so re-approvals are idempotent */
+        $receiptNumber = 'RCP-' . date('Ymd') . '-' . str_pad($orderId, 5, '0', STR_PAD_LEFT);
+        $db->prepare(
+            "INSERT IGNORE INTO receipts (receipt_number, order_id, generated_at) VALUES (?, ?, NOW())"
+        )->execute([$receiptNumber, $orderId]);
+    }
+    if ($paymentStatus === 'Rejected') {
+        $db->prepare(
+            "UPDATE products p
+             INNER JOIN order_items oi ON oi.product_id = p.product_id
+             SET p.status = 'available'
+             WHERE oi.order_id = ?"
+        )->execute([$orderId]);
+    }
 
-        /* ── REJECTED: release products back to available (buyer must retry) ── */
-        if ($paymentStatus === 'Rejected') {
-            $db->prepare(
-                "UPDATE products p
-                 INNER JOIN order_items oi ON oi.product_id = p.product_id
-                 SET p.status = 'available'
-                 WHERE oi.order_id = ?"
-            )->execute([$orderId]);
+    /* ── Step 3: Determine final order status ── */
+    $finalOrderStatus = '';
 
-            /* Mark order as Rejected */
-            $db->prepare(
-                "UPDATE orders SET status = 'Rejected'
-                 WHERE order_id = ? AND status IN ('Pending Verification','Pending Payment')"
-            )->execute([$orderId]);
+    if ($orderStatus !== '') {
+        $finalOrderStatus = $orderStatus;
+    } elseif ($paymentStatus === 'Approved') {
+        $finalOrderStatus = 'Processing';   /* payment approved → enter fulfillment */
+    } elseif ($paymentStatus === 'Rejected') {
+        $finalOrderStatus = 'Payment Rejected';
+    }
+
+    if ($finalOrderStatus !== '') {
+        if ($finalOrderStatus === 'Payment Rejected' && $rejectionReason !== '') {
+            $db->prepare('UPDATE orders SET status = ?, rejection_reason = ? WHERE order_id = ?')
+               ->execute([$finalOrderStatus, $rejectionReason, $orderId]);
+        } else {
+            $db->prepare('UPDATE orders SET status = ? WHERE order_id = ?')
+               ->execute([$finalOrderStatus, $orderId]);
         }
     }
 
     $db->commit();
-    respond(['success' => true]);
+    respond(['success' => true, 'order_status' => $finalOrderStatus]);
 
 } catch (Throwable $e) {
     $db->rollBack();
-    respondError('Failed to update order status: ' . $e->getMessage(), 500);
+    respondError('Failed to update: ' . $e->getMessage(), 500);
 }

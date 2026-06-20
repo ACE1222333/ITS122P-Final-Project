@@ -1,65 +1,52 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>About — Carousell</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <link rel="stylesheet" href="shop-styles.css">
 </head>
 <body>
 
 <!-- Nav, cart, auth, toast injected by shop-layout.js -->
 
-<div class="about-hero">
-  <div class="about-hero-text">
-    <div class="label">Our Brand</div>
-    <h1>Carousell</h1>
-    <p>We believe clothing should be honest, lasting, and kind to the world. Every pre-loved piece we carry is handpicked with care — for style, quality, and sustainability.</p>
+<!-- ── HERO SPLIT ───────────────────────────────────────────── -->
+<div class="row g-0 align-items-stretch" style="min-height:55vh;">
+  <div class="col-12 col-md-5 d-flex flex-column justify-content-center" style="background:var(--bg);padding:clamp(2.5rem,5vw,5rem) clamp(1.5rem,4vw,3rem);">
+    <div class="text-uppercase mb-3" style="font-size:.68rem;letter-spacing:.14em;color:var(--text-muted);">Our Brand</div>
+    <h1 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,4vw,3.8rem);letter-spacing:.08em;line-height:1.05;">Carousell</h1>
+    <p class="fst-italic mb-0" style="color:var(--text-muted);font-size:.88rem;line-height:1.75;max-width:380px;">
+      We believe clothing should be honest, lasting, and kind to the world. Every pre-loved piece we carry is handpicked with care — for style, quality, and sustainability.
+    </p>
   </div>
-  <!-- Women's fashion / second-hand boutique — Unsplash (free) -->
-  <div class="about-hero-img">
+  <div class="col-md-7 d-none d-md-block" style="background:#d5d2cc;">
     <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=900&q=85&auto=format&fit=crop"
-         alt="Curated women's fashion" loading="lazy">
+         alt="Curated women's fashion" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
   </div>
 </div>
 
-<div class="about-owner">
-  <h2>About the Owner</h2>
-  <div class="owner-row" style="grid-template-columns:1fr;">
-    <!-- Owner photo removed — update this section with your own content -->
-    <div class="owner-info" style="max-width:640px;margin:0 auto;text-align:center;">
-      <h3>Owner Name</h3>
-      <div class="role">Founder &amp; Curator</div>
-      <p>Started as a personal passion for sustainable fashion, Carousell grew from a small thrift collection to a curated second-hand boutique. Every item is personally selected, inspected, and styled — because great clothes deserve a second chapter.</p>
-    </div>
+<!-- ── OWNER ────────────────────────────────────────────────── -->
+<div style="background:var(--bg-card);border-top:1px solid var(--border);padding:4rem 1rem;">
+  <div class="container text-center" style="max-width:700px;">
+    <h2 class="mb-4" style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.1em;">About the Owner</h2>
+    <h3 style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.08em;">Owner Name</h3>
+    <div class="text-uppercase mb-3" style="font-size:.76rem;letter-spacing:.1em;color:var(--text-muted);">Founder &amp; Curator</div>
+    <p class="fst-italic mb-0" style="font-size:.86rem;color:var(--text-muted);line-height:1.75;">
+      Started as a personal passion for sustainable fashion, Carousell grew from a small thrift collection to a curated second-hand boutique. Every item is personally selected, inspected, and styled — because great clothes deserve a second chapter.
+    </p>
   </div>
 </div>
 
-<div class="values-strip">
-  <div class="value-card">
-    <div class="value-icon">🌱</div>
-    <h4>Sustainability</h4>
-    <p>Second-hand shopping reduces textile waste and carbon footprint. We're proud to be part of the circular fashion movement.</p>
-  </div>
-  <div class="value-card">
-    <div class="value-icon">✋</div>
-    <h4>Hand-Curated</h4>
-    <p>Every single piece is personally checked for quality, condition, and style before it goes up. No bulk, no compromise.</p>
-  </div>
-  <div class="value-card">
-    <div class="value-icon">♾️</div>
-    <h4>One of a Kind</h4>
-    <p>Since each item is unique, when it's gone it's gone. Shop fast — and know your piece is truly yours alone.</p>
-  </div>
-</div>
 
 <footer><span>© 2025 Carousell. All rights reserved.</span></footer>
 
-<script src="shop-shared.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="shop-shared.js?v=2"></script>
 <script src="shop-layout.js"></script>
-<script>
-initShopLayout('about');
-</script>
+<script>initShopLayout('about');</script>
 </body>
 </html>
+

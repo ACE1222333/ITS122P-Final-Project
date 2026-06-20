@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- ============================================================
-     sizes.xsd
-     XML Schema Definition for the predefined size catalogue.
-     Sizes are fixed: XS, S, M, L, XL, XXL, Free Size.
-============================================================ -->
+<!-- Clothing sizes available when a customer selects a product in the shop -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
            elementFormDefault="qualified">
 
@@ -23,6 +19,7 @@
     </xs:sequence>
   </xs:complexType>
 
+  <!-- The only size labels accepted in the shop -->
   <xs:simpleType name="SizeLabelType">
     <xs:restriction base="xs:string">
       <xs:enumeration value="XS"/>

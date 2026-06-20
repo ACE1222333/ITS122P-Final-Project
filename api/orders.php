@@ -8,13 +8,15 @@ require_once __DIR__ . '/config.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-/* ══════════════ GET — admin order list ══════════════════════ */
+/* ══════════════ GET — admin order list (approved payments only) ═ */
 if ($method === 'GET') {
     requireAdmin();
     $db = getDB();
 
+    /* Only orders whose payment has been Approved appear in the fulfillment
+       view.  Pending / Rejected payments live on the Payments page instead. */
     $orders = $db->query(
-        'SELECT o.order_id, o.user_id, o.total_amount, o.status AS order_status,
+        "SELECT o.order_id, o.user_id, o.total_amount, o.status AS order_status,
                 o.date_ordered,
                 u.first_name, u.last_name, u.email, u.phone, u.address,
                 py.payment_id, py.payment_method, py.reference_number,
@@ -22,8 +24,8 @@ if ($method === 'GET') {
                 py.amount AS payment_amount, py.date_paid
          FROM orders o
          JOIN users u ON u.user_id = o.user_id
-         LEFT JOIN payments py ON py.order_id = o.order_id
-         ORDER BY o.date_ordered DESC'
+         INNER JOIN payments py ON py.order_id = o.order_id AND py.status = 'Approved'
+         ORDER BY o.date_ordered DESC"
     )->fetchAll();
 
     /* Fetch all order items with product info in one query */
@@ -138,10 +140,10 @@ if ($method === 'POST') {
         /* Reservation expires in 48 hours — gives admin time to review proof */
         $reservationExpiry = date('Y-m-d H:i:s', strtotime('+48 hours'));
 
-        /* Insert order with 'Pending Verification' (proof is submitted in same step) */
+        /* Insert order — initial status is Payment Verification */
         $ordStmt = $db->prepare(
-            'INSERT INTO orders (user_id, total_amount, status, reservation_expires_at)
-             VALUES (?, ?, \'Pending Verification\', ?)'
+            "INSERT INTO orders (user_id, total_amount, status, reservation_expires_at)
+             VALUES (?, ?, 'Payment Verification', ?)"
         );
         $ordStmt->execute([$user['user_id'], $totalAmount, $reservationExpiry]);
         $orderId = (int)$db->lastInsertId();

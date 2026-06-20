@@ -1,4 +1,4 @@
-/* ════════════════════════════════════════════════════════════════
+﻿/* ════════════════════════════════════════════════════════════════
    shop-layout.js — Injects the shared nav, overlays, and footer
    into every shop page.
 
@@ -10,6 +10,7 @@ function initShopLayout(activePageId) {
   _injectAdminBar();
   _injectNav(activePageId);
   _injectProductModal();
+  _injectImgLightbox();
   _injectCartDrawer();
   _injectAuthModal();
   _injectEditProfileModal();
@@ -21,6 +22,8 @@ function initShopLayout(activePageId) {
   loadCart();
   restoreSession();
   updateCartBadge();
+
+  /* Nothing needed here — My Orders opens directly from the payment page */
 
   // Close dropdown when clicking anywhere outside it
   document.addEventListener('click', function(e) {
@@ -62,76 +65,68 @@ function _injectNav(activePageId) {
   ];
 
   const links = pages.map(p =>
-    `<li><a href="${p.href}" class="${p.id===activePageId?'active':''}">${p.label}</a></li>`
+    `<li class="nav-item">
+       <a class="nav-link${p.id===activePageId?' active':''}" href="${p.href}">${p.label}</a>
+     </li>`
   ).join('');
 
   const nav = document.createElement('nav');
+  nav.id = 'main-nav';
+  nav.className = 'navbar navbar-expand-lg fixed-top';
   nav.innerHTML = `
-    <a class="logo" href="shop.html">Carousell</a>
-    <ul class="nav-links">${links}</ul>
-    <div class="nav-icons">
+    <div class="container-fluid px-4">
+      <a class="navbar-brand" href="shop.html">Carousell</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMain">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">${links}</ul>
+        <div class="d-flex align-items-center gap-3 py-2 py-lg-0">
 
-      <!-- Cart -->
-      <div class="cart-wrap" onclick="openCart()">
-        <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-        <span class="cart-badge" id="cart-count">0</span>
-      </div>
+          <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle dark mode">
+            <svg id="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg id="theme-icon-sun"  viewBox="0 0 24 24" style="display:none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </button>
 
-      <!-- Guest: show login icon -->
-      <div id="nav-auth-guest" onclick="openAuth()" title="Log in" style="cursor:pointer;">
-        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:var(--nav-muted);fill:none;stroke-width:1.8;transition:stroke 0.2s;"
-             onmouseover="this.style.stroke='var(--nav-text)'" onmouseout="this.style.stroke='var(--nav-muted)'">
-          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
-        </svg>
-      </div>
-
-      <!-- Logged in: user pill with dropdown -->
-      <div id="nav-auth-user" class="nav-user-pill" style="display:none;" onclick="toggleUserDropdown(event)">
-        <svg class="u-avatar" viewBox="0 0 24 24">
-          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
-        </svg>
-        <span class="u-name" id="nav-username"></span>
-        <svg class="u-chevron" viewBox="0 0 24 24">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-
-        <div class="nav-user-dropdown" id="user-dropdown">
-          <!-- User info header -->
-          <div class="dropdown-user-info">
-            <div class="dropdown-user-name"  id="dropdown-fullname">—</div>
-            <div class="dropdown-user-email" id="dropdown-email">—</div>
+          <div class="cart-wrap" onclick="openCart()">
+            <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:#aaa;fill:none;stroke-width:1.8;"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+            <span class="cart-badge" id="cart-count">0</span>
           </div>
 
-          <!-- Edit Profile -->
-          <button onclick="openEditProfile(event)">
-            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            Edit Profile
-          </button>
+          <div id="nav-auth-guest" onclick="openAuth()" title="Log in" style="cursor:pointer;">
+            <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:#aaa;fill:none;stroke-width:1.8;">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
 
-          <div class="dropdown-divider"></div>
+          <div id="nav-auth-user" class="nav-user-pill" style="display:none;" onclick="toggleUserDropdown(event)">
+            <svg class="u-avatar" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="u-name" id="nav-username"></span>
+            <svg class="u-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            <div class="nav-user-dropdown" id="user-dropdown">
+              <div class="dropdown-user-info">
+                <div class="dropdown-user-name"  id="dropdown-fullname">—</div>
+                <div class="dropdown-user-email" id="dropdown-email">—</div>
+              </div>
+              <button onclick="openEditProfile(event)">
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Edit Profile
+              </button>
+              <div class="dropdown-divider"></div>
+              <button onclick="openMyOrders(event)">
+                <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>My Orders
+              </button>
+              <button onclick="openOrderHistory(event)">
+                <svg viewBox="0 0 24 24"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 0 .5-4"/><polyline points="3 3 3 9 9 9"/></svg>Order History
+              </button>
+              <div class="dropdown-divider"></div>
+              <button class="danger" onclick="logOut(event)">
+                <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Log out
+              </button>
+            </div>
+          </div>
 
-          <!-- My Orders -->
-          <button onclick="openMyOrders(event)">
-            <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-            My Orders
-          </button>
-
-          <!-- Order History -->
-          <button onclick="openOrderHistory(event)">
-            <svg viewBox="0 0 24 24"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 0 .5-4"/><polyline points="3 3 3 9 9 9"/></svg>
-            Order History
-          </button>
-
-          <div class="dropdown-divider"></div>
-
-          <!-- Logout -->
-          <button class="danger" onclick="logOut(event)">
-            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            Log out
-          </button>
         </div>
       </div>
-
     </div>`;
   document.body.prepend(nav);
 }
@@ -145,8 +140,9 @@ function _injectProductModal() {
           <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div class="modal-img-pane">
-          <div class="modal-main-img" id="modal-main-img">
+          <div class="modal-main-img" id="modal-main-img" style="cursor:zoom-in;" onclick="openImgLightbox()" title="Click to enlarge">
             <img id="modal-img-main" src="" alt="">
+            <div class="gallery-dots" id="modal-gallery-dots"></div>
             <div class="gallery-nav">
               <button class="gallery-arrow" onclick="galleryPrev(event)">
                 <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
@@ -161,6 +157,7 @@ function _injectProductModal() {
         <div class="modal-details">
           <div class="modal-name"  id="modal-name"></div>
           <div class="modal-price" id="modal-price"></div>
+          <div class="modal-divider"></div>
           <div class="modal-size-row">
             <span class="modal-size-label">Size:</span>
             <span class="modal-size-value" id="modal-size-val">—</span>
@@ -169,10 +166,11 @@ function _injectProductModal() {
             <span class="modal-condition-label">Condition:</span>
             <span class="condition-badge" id="modal-condition-badge">—</span>
           </div>
-          <div style="margin-bottom:0.9rem;display:flex;align-items:center;gap:0.5rem;">
+          <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.65rem;">
             <span class="modal-condition-label">Category:</span>
             <span class="product-category-tag" id="modal-category-tag" style="max-width:none;">—</span>
           </div>
+          <div class="modal-divider"></div>
           <div class="modal-desc" id="modal-desc"></div>
           <div class="modal-actions">
             <button class="btn-cart" id="modal-cart-btn" onclick="addToCart()">Add to Cart</button>
@@ -181,6 +179,49 @@ function _injectProductModal() {
         </div>
       </div>
     </div>`);
+}
+
+/* ── IMAGE LIGHTBOX ────────────────────────────────────────────── */
+function _injectImgLightbox() {
+  document.body.insertAdjacentHTML('beforeend', `
+    <div id="img-lightbox" class="img-lightbox" onclick="closeImgLightbox()">
+      <button class="img-lightbox-close" onclick="closeImgLightbox()" title="Close">&#x2715;</button>
+      <button class="img-lightbox-arrow left"  onclick="lightboxPrev(event)" title="Previous">&#8249;</button>
+      <img id="img-lightbox-img" src="" alt="" onclick="event.stopPropagation()">
+      <button class="img-lightbox-arrow right" onclick="lightboxNext(event)" title="Next">&#8250;</button>
+    </div>`);
+
+  document.addEventListener('keydown', e => {
+    const lb = document.getElementById('img-lightbox');
+    if (!lb || !lb.classList.contains('open')) return;
+    if (e.key === 'Escape')     closeImgLightbox();
+    if (e.key === 'ArrowLeft')  lightboxPrev(e);
+    if (e.key === 'ArrowRight') lightboxNext(e);
+  });
+}
+
+function openImgLightbox() {
+  const src = document.getElementById('modal-img-main')?.src;
+  if (!src) return;
+  const lb = document.getElementById('img-lightbox');
+  document.getElementById('img-lightbox-img').src = src;
+  lb.classList.add('open');
+}
+
+function closeImgLightbox() {
+  document.getElementById('img-lightbox')?.classList.remove('open');
+}
+
+function lightboxPrev(e) {
+  e.stopPropagation();
+  galleryPrev(e);
+  document.getElementById('img-lightbox-img').src = document.getElementById('modal-img-main').src;
+}
+
+function lightboxNext(e) {
+  e.stopPropagation();
+  galleryNext(e);
+  document.getElementById('img-lightbox-img').src = document.getElementById('modal-img-main').src;
 }
 
 /* ── CART DRAWER ───────────────────────────────────────────────── */
@@ -229,7 +270,13 @@ function _injectAuthModal() {
           </div>
           <div class="auth-field">
             <label class="auth-label" for="login-pass">Password</label>
-            <input class="auth-input" type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+            <div class="pass-wrap">
+              <input class="auth-input" type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+              <button type="button" class="eye-btn" onclick="togglePassVisibility('login-pass',this)" tabindex="-1" aria-label="Show/hide password">
+                <svg class="eye-icon eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="eye-icon eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
           </div>
           <div class="auth-error" id="login-error"></div>
           <button class="btn-auth" onclick="doLogin()">Log in</button>
@@ -258,7 +305,23 @@ function _injectAuthModal() {
           </div>
           <div class="auth-field">
             <label class="auth-label" for="reg-pass">Password</label>
-            <input class="auth-input" type="password" id="reg-pass" placeholder="Min. 8 characters" onkeydown="if(event.key==='Enter')doRegister()">
+            <div class="pass-wrap">
+              <input class="auth-input" type="password" id="reg-pass" placeholder="Min. 8 characters" onkeydown="if(event.key==='Enter')doRegister()">
+              <button type="button" class="eye-btn" onclick="togglePassVisibility('reg-pass',this)" tabindex="-1" aria-label="Show/hide password">
+                <svg class="eye-icon eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="eye-icon eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="auth-field">
+            <label class="auth-label" for="reg-confirm-pass">Confirm Password</label>
+            <div class="pass-wrap">
+              <input class="auth-input" type="password" id="reg-confirm-pass" placeholder="Re-enter password" onkeydown="if(event.key==='Enter')doRegister()">
+              <button type="button" class="eye-btn" onclick="togglePassVisibility('reg-confirm-pass',this)" tabindex="-1" aria-label="Show/hide password">
+                <svg class="eye-icon eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="eye-icon eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
           </div>
           <div class="auth-error" id="reg-error"></div>
           <button class="btn-auth" onclick="doRegister()">Create account</button>
@@ -349,10 +412,26 @@ function _injectOrdersPanel() {
       <div class="orders-panel-head">
         <div class="orders-panel-head-inner">
           <div class="orders-panel-title" id="orders-panel-title">My Orders</div>
-          <button class="orders-panel-close" onclick="closeMyOrdersPanel()">
-            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            Close
-          </button>
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <!-- Refresh button so users can manually sync anytime -->
+            <button onclick="_fetchAndRenderOrders()" title="Refresh orders"
+              style="background:none;border:1.5px solid var(--border);border-radius:8px;
+                     padding:0.3rem 0.6rem;cursor:pointer;font-size:0.75rem;color:var(--text-muted);
+                     font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:0.3rem;
+                     transition:background 0.15s,color 0.15s;"
+              onmouseover="this.style.background='var(--bg-section)';this.style.color='var(--text)'"
+              onmouseout="this.style.background='none';this.style.color='var(--text-muted)'">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+              </svg>
+              Refresh
+            </button>
+            <button class="orders-panel-close" onclick="closeMyOrdersPanel()">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              Close
+            </button>
+          </div>
         </div>
         <div class="orders-panel-tabs">
           <button class="orders-panel-tab active" id="op-tab-active"  onclick="switchOrdersTab('active')">My Orders</button>
@@ -408,6 +487,17 @@ function _injectReviewModal() {
           <textarea class="review-modal-textarea" id="review-modal-body"
             placeholder="Share your experience with this item — quality, sizing, condition…"></textarea>
 
+          <!-- Photo upload -->
+          <div class="review-modal-text-label" style="margin-top:0.9rem;">
+            Photos <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.75rem;color:var(--text-muted);">(optional · up to 5)</span>
+          </div>
+          <label class="rv-file-label" for="review-modal-images">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;flex-shrink:0;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Choose photos…
+          </label>
+          <input type="file" id="review-modal-images" class="rv-file-input" multiple accept="image/jpeg,image/png,image/gif,image/webp" onchange="previewModalReviewImages(this)">
+          <div id="review-modal-img-previews" class="review-img-previews"></div>
+
           <!-- Error -->
           <div class="review-modal-err" id="review-modal-err"></div>
         </div>
@@ -425,3 +515,27 @@ function _injectReviewModal() {
 function _injectToast() {
   document.body.insertAdjacentHTML('beforeend', `<div class="toast" id="toast"></div>`);
 }
+
+/* ── THEME (light / dark) ──────────────────────────────────────── */
+function _applyTheme(dark) {
+  document.body.classList.toggle('dark', dark);
+  /* Sync Bootstrap's theme so navbar, offcanvas, forms & cards go dark too */
+  document.documentElement.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+  const moon = document.getElementById('theme-icon-moon');
+  const sun  = document.getElementById('theme-icon-sun');
+  if (moon) moon.style.display = dark ? 'none'  : '';
+  if (sun)  sun.style.display  = dark ? ''      : 'none';
+}
+
+function toggleTheme() {
+  const isDark = !document.body.classList.contains('dark');
+  localStorage.setItem('carousell_theme', isDark ? 'dark' : 'light');
+  _applyTheme(isDark);
+}
+
+/* Apply saved theme immediately on load */
+(function() {
+  const saved = localStorage.getItem('carousell_theme');
+  if (saved === 'dark') _applyTheme(true);
+})();
+

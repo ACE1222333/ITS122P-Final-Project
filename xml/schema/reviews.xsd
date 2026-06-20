@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- ============================================================
-     reviews.xsd
-     XML Schema Definition for customer reviews.
-============================================================ -->
+<!-- Customer reviews shown on the shop reviews page, with optional admin reply and photo uploads -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
            elementFormDefault="qualified">
 
@@ -21,14 +18,34 @@
       <xs:element name="user_id"       type="xs:positiveInteger"/>
       <xs:element name="reviewer_name" type="xs:string"/>
       <xs:element name="product_id"    type="xs:positiveInteger" minOccurs="0"/>
-      <xs:element name="product_name"  type="xs:string"          minOccurs="0"/>
+      <xs:element name="product_name"  type="xs:string"          minOccurs="0"/><!-- name of the product the customer bought -->
+      <xs:element name="product_price" type="xs:decimal"         minOccurs="0"/><!-- price of the product at the time of purchase -->
+      <xs:element name="product_image" type="xs:anyURI"          minOccurs="0"/><!-- cover photo of the product -->
       <xs:element name="rating"        type="RatingType"/>
-      <xs:element name="comment"       type="xs:string"/>
-      <xs:element name="date_reviewed" type="xs:dateTime"/>
+      <xs:element name="body"          type="xs:string"/>                        <!-- the written review text -->
+      <xs:element name="date_reviewed" type="xs:string"/>
+      <xs:element name="admin_reply"   type="xs:string"          minOccurs="0"/><!-- reply written by the admin from the admin reviews page -->
+      <xs:element name="reply_date"    type="xs:string"          minOccurs="0"/>
+      <xs:element name="images"        type="ReviewImagesType"/>
     </xs:sequence>
   </xs:complexType>
 
-  <!-- Rating must be 1–5 -->
+  <!-- Photos uploaded by the customer along with their review -->
+  <xs:complexType name="ReviewImagesType">
+    <xs:sequence>
+      <xs:element name="review_image" type="ReviewImageType"
+                  minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ReviewImageType">
+    <xs:sequence>
+      <xs:element name="image_id" type="xs:positiveInteger"/>
+      <xs:element name="path"     type="xs:anyURI"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Star rating given by the customer, 1 being the lowest and 5 the highest -->
   <xs:simpleType name="RatingType">
     <xs:restriction base="xs:integer">
       <xs:minInclusive value="1"/>

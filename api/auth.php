@@ -66,18 +66,21 @@ if ($action === 'login') {
         respondError('Failed to create session: ' . $e->getMessage(), 500);
     }
 
+    /* Store in PHP session — browser sends PHPSESSID cookie automatically */
+    $authUser = [
+        'user_id'    => (int) $user['user_id'],
+        'first_name' => $user['first_name'],
+        'last_name'  => $user['last_name'],
+        'email'      => $user['email'],
+        'role'       => $user['role'],
+        'phone'      => $user['phone']   ?? '',
+        'address'    => $user['address'] ?? '',
+    ];
+    $_SESSION['auth_user'] = $authUser;
+
     respond([
         'success' => true,
-        'user'    => [
-            'user_id'    => (int) $user['user_id'],
-            'first_name' => $user['first_name'],
-            'last_name'  => $user['last_name'],
-            'email'      => $user['email'],
-            'role'       => $user['role'],
-            'phone'      => $user['phone']   ?? '',
-            'address'    => $user['address'] ?? '',
-            'token'      => $token,
-        ],
+        'user'    => array_merge($authUser, ['token' => $token]),
     ]);
 }
 
@@ -121,18 +124,20 @@ if ($action === 'register') {
         respondError('Registration failed: ' . $e->getMessage(), 500);
     }
 
+    $authUser = [
+        'user_id'    => $userId,
+        'first_name' => $fname,
+        'last_name'  => $lname,
+        'email'      => $email,
+        'role'       => 'customer',
+        'phone'      => $phone,
+        'address'    => $address,
+    ];
+    $_SESSION['auth_user'] = $authUser;
+
     respond([
         'success' => true,
-        'user'    => [
-            'user_id'    => $userId,
-            'first_name' => $fname,
-            'last_name'  => $lname,
-            'email'      => $email,
-            'role'       => 'customer',
-            'phone'      => $phone,
-            'address'    => $address,
-            'token'      => $token,
-        ],
+        'user'    => array_merge($authUser, ['token' => $token]),
     ]);
 }
 
@@ -140,6 +145,10 @@ if ($action === 'register') {
    LOGOUT
 ══════════════════════════════════════════════════ */
 if ($action === 'logout') {
+    /* Destroy PHP session */
+    $_SESSION = [];
+    session_destroy();
+
     $token = getRequestToken();
     if ($token !== '') {
         try {

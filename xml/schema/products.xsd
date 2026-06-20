@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- ============================================================
-     products.xsd
-     XML Schema Definition for the Carousell Products feed.
-============================================================ -->
+<!-- Second-hand clothing items listed in the shop and managed in the admin products page -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
            elementFormDefault="qualified">
 
-  <!-- Root element -->
   <xs:element name="products">
     <xs:complexType>
       <xs:sequence>
@@ -16,45 +12,44 @@
     </xs:complexType>
   </xs:element>
 
-  <!-- ── Product ──────────────────────────────────────────────── -->
   <xs:complexType name="ProductType">
     <xs:sequence>
       <xs:element name="id"          type="xs:positiveInteger"/>
       <xs:element name="name"        type="xs:string"/>
-      <xs:element name="description" type="xs:string" minOccurs="0"/>
+      <xs:element name="description" type="xs:string"             minOccurs="0"/>
       <xs:element name="price"       type="xs:decimal"/>
       <xs:element name="condition"   type="ConditionType"/>
       <xs:element name="status"      type="ProductStatusType"/>
-      <xs:element name="featured"    type="xs:boolean"/>
-      <xs:element name="cover_index" type="xs:nonNegativeInteger"/>
-      <xs:element name="category_id" type="xs:positiveInteger" minOccurs="0"/>
-      <xs:element name="category"    type="xs:string"          minOccurs="0"/>
-      <xs:element name="size_id"     type="xs:positiveInteger" minOccurs="0"/>
-      <xs:element name="size"        type="xs:string"          minOccurs="0"/>
-      <xs:element name="images"      type="ImagesType"/>
-      <xs:element name="date_added"  type="xs:dateTime"        minOccurs="0"/>
+      <xs:element name="featured"    type="xs:boolean"/>           <!-- shown in the featured section on the home page -->
+      <xs:element name="cover_index" type="xs:nonNegativeInteger"/><!-- which photo in the images list is the product cover -->
+      <xs:element name="category_id" type="xs:positiveInteger"    minOccurs="0"/>
+      <xs:element name="category"    type="xs:string"             minOccurs="0"/>
+      <xs:element name="size_id"     type="xs:positiveInteger"    minOccurs="0"/>
+      <xs:element name="size"        type="xs:string"             minOccurs="0"/>
+      <xs:element name="images"      type="ImagesType"/>           <!-- product photos uploaded through the admin product form -->
+      <xs:element name="date_added"  type="xs:dateTime"/>
     </xs:sequence>
   </xs:complexType>
 
-  <!-- ── Images list ───────────────────────────────────────── -->
+  <!-- File paths of photos uploaded for this product -->
   <xs:complexType name="ImagesType">
     <xs:sequence>
       <xs:element name="image" type="xs:anyURI"
-                  minOccurs="0" maxOccurs="5"/>
+                  minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
 
-  <!-- ── Condition enumeration ─────────────────────────────── -->
+  <!-- Condition labels shown on the product card and product modal -->
   <xs:simpleType name="ConditionType">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="Like New"/>
-      <xs:enumeration value="Excellent"/>
-      <xs:enumeration value="Good"/>
-      <xs:enumeration value="Fair"/>
+      <xs:enumeration value="Like new"/>
+      <xs:enumeration value="Lightly used"/>
+      <xs:enumeration value="Well used"/>
+      <xs:enumeration value="Heavily used"/>
     </xs:restriction>
   </xs:simpleType>
 
-  <!-- ── Product status enumeration ───────────────────────── -->
+  <!-- Availability status controlled by the admin -->
   <xs:simpleType name="ProductStatusType">
     <xs:restriction base="xs:string">
       <xs:enumeration value="available"/>

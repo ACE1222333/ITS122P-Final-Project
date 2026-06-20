@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -22,108 +22,117 @@
       </div>
     </div>
 
-    <div class="form-card">
-      <!-- PHP integration point: POST to api/products/create.php (add) or api/products/update.php (edit) -->
+    <div style="display:grid;grid-template-columns:1fr 260px;gap:1.5rem;align-items:start;">
 
-      <div class="form-row single">
-        <div class="form-group">
-          <label class="form-label">Product Name</label>
-          <input class="form-input" type="text" id="f-name" placeholder="e.g. Vintage Levi's Jacket">
-        </div>
-      </div>
+      <!-- ── LEFT: main form fields ── -->
+      <div class="form-card">
+        <!-- PHP integration point: POST to api/products/create.php (add) or api/products/update.php (edit) -->
 
-      <div class="form-row triple">
-        <div class="form-group">
-          <label class="form-label">Price (₱)</label>
-          <input class="form-input" type="number" id="f-price" placeholder="e.g. 450" min="0" step="1">
-        </div>
-        <div class="form-group">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.3rem;">
-            <label class="form-label" for="f-category" style="margin-bottom:0;">Category</label>
-            <button type="button" onclick="openAddCategoryModal()"
-              style="background:none;border:none;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.75rem;font-weight:600;cursor:pointer;letter-spacing:0.04em;padding:0;display:flex;align-items:center;gap:0.25rem;">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              New Category
-            </button>
+        <div class="form-row single">
+          <div class="form-group">
+            <label class="form-label">Product Name</label>
+            <input class="form-input" type="text" id="f-name" placeholder="e.g. Vintage Levi's Jacket">
           </div>
-          <!-- Populated dynamically from api/categories.php -->
-          <select class="form-select" id="f-category">
-            <option value="">Loading categories…</option>
-          </select>
         </div>
-        <div class="form-group">
-          <!-- Sizes are fixed and predefined — not editable by users -->
-          <label class="form-label" for="f-size">Size</label>
-          <select class="form-select" id="f-size">
-            <option value="">Select Size</option>
-            <option value="1">XS</option>
-            <option value="2">S</option>
-            <option value="3">M</option>
-            <option value="4">L</option>
-            <option value="5">XL</option>
-            <option value="6">XXL</option>
-            <option value="7">Free Size</option>
-          </select>
-        </div>
-      </div>
 
-      <div class="form-row single">
-        <div class="form-group">
-          <label class="form-label">Condition</label>
-          <select class="form-select" id="f-condition">
-            <option value="">Select Condition</option>
-            <option value="Like New">Like New</option>
-            <option value="Excellent">Excellent</option>
-            <option value="Good">Good</option>
-            <option value="Fair">Fair</option>
-          </select>
+        <div class="form-row double">
+          <div class="form-group">
+            <label class="form-label">Price (₱)</label>
+            <input class="form-input" type="number" id="f-price" placeholder="e.g. 450" min="0" step="1">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="f-size">Size</label>
+            <select class="form-select" id="f-size">
+              <option value="">Select Size</option>
+              <option value="1">XS</option>
+              <option value="2">S</option>
+              <option value="3">M</option>
+              <option value="4">L</option>
+              <option value="5">XL</option>
+              <option value="6">XXL</option>
+              <option value="7">Free Size</option>
+            </select>
+          </div>
         </div>
-      </div>
 
-      <div class="form-row single">
-        <div class="form-group">
-          <label class="form-label">Description</label>
-          <textarea class="form-textarea" id="f-desc" placeholder="Describe the item, brand, material, measurements…"></textarea>
+        <div class="form-row single">
+          <div class="form-group">
+            <label class="form-label">Condition</label>
+            <select class="form-select" id="f-condition">
+              <option value="">Select Condition</option>
+              <option value="Brand new">Brand new</option>
+              <option value="Like new">Like new</option>
+              <option value="Lightly used">Lightly used</option>
+              <option value="Well used">Well used</option>
+              <option value="Heavily used">Heavily used</option>
+            </select>
+          </div>
         </div>
-      </div>
 
-      <div class="form-row single">
-        <div class="form-group">
-          <label class="form-label">Product Images (up to 5) — click "Set Cover" to choose the thumbnail</label>
-          <div class="multi-drop-zone" id="f-drop"
-               onclick="document.getElementById('f-files').click()"
-               ondragover="handleMultiDragOver(event,'f-drop')"
-               ondragleave="handleMultiDragLeave(event,'f-drop')"
-               ondrop="handleFormDrop(event)">
-            <input type="file" id="f-files" accept="image/*" multiple
-                   onchange="handleFormFileSelect(event)">
-            <div class="drop-prompt">
-              <span class="drop-icon">&#128444;</span>
-              <span class="drop-label">Drag &amp; Drop Images</span>
-              <span class="drop-sub">or click to browse &middot; JPG, PNG, WEBP &middot; up to 5</span>
+        <div class="form-row single">
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-textarea" id="f-desc" placeholder="Describe the item, brand, material, measurements…"></textarea>
+          </div>
+        </div>
+
+        <div class="form-row single">
+          <div class="form-group">
+            <label class="form-label">Product Images (up to 5) — click "Set Cover" to choose the thumbnail</label>
+            <div class="multi-drop-zone" id="f-drop"
+                 onclick="document.getElementById('f-files').click()"
+                 ondragover="handleMultiDragOver(event,'f-drop')"
+                 ondragleave="handleMultiDragLeave(event,'f-drop')"
+                 ondrop="handleFormDrop(event)">
+              <input type="file" id="f-files" accept="image/*" multiple
+                     onchange="handleFormFileSelect(event)">
+              <div class="drop-prompt">
+                <span class="drop-icon">&#128444;</span>
+                <span class="drop-label">Drag &amp; Drop Images</span>
+                <span class="drop-sub">or click to browse &middot; JPG, PNG, WEBP &middot; up to 5</span>
+              </div>
             </div>
+            <div class="img-preview-grid" id="f-img-grid"></div>
           </div>
-          <div class="img-preview-grid" id="f-img-grid"></div>
         </div>
-      </div>
 
-      <div class="form-row single">
-        <div class="form-group">
-          <label class="form-label">Featured Product</label>
-          <div class="toggle-wrap">
-            <div class="toggle-track" id="f-featured-track" onclick="toggleFeatured()">
-              <div class="toggle-thumb"></div>
+        <div class="form-row single">
+          <div class="form-group">
+            <label class="form-label">Featured Product</label>
+            <div class="toggle-wrap">
+              <div class="toggle-track" id="f-featured-track" onclick="toggleFeatured()">
+                <div class="toggle-thumb"></div>
+              </div>
+              <span class="toggle-label" id="f-featured-label">Not Featured</span>
             </div>
-            <span class="toggle-label" id="f-featured-label">Not Featured</span>
+            <input type="hidden" id="f-featured" value="0">
           </div>
-          <input type="hidden" id="f-featured" value="0">
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-save" id="submit-btn" onclick="submitForm()">Save Product</button>
+          <a class="btn-cancel" href="admin-products.html">Cancel</a>
         </div>
       </div>
 
-      <div class="form-actions">
-        <button class="btn-save" id="submit-btn" onclick="submitForm()">Save Product</button>
-        <a class="btn-cancel" href="admin-products.html">Cancel</a>
+      <!-- ── RIGHT: categories panel ── -->
+      <div class="form-card" style="padding:1.2rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+          <label class="form-label" style="margin-bottom:0;font-size:0.8rem;">Categories</label>
+          <button type="button" onclick="openAddCategoryModal()"
+            style="background:none;border:none;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:0.75rem;font-weight:600;cursor:pointer;letter-spacing:0.04em;padding:0;display:flex;align-items:center;gap:0.25rem;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New
+          </button>
+        </div>
+        <div id="f-category-list" style="
+          border:1px solid var(--border); border-radius:8px;
+          max-height:320px; overflow-y:auto; padding:0.3rem 0;
+          background:var(--bg); font-size:0.83rem;">
+          <div style="padding:0.5rem 0.75rem;color:var(--text-muted);">Loading…</div>
+        </div>
       </div>
+
     </div>
 
     <!-- Live storefront preview (shown in edit mode only) -->
@@ -189,26 +198,42 @@ let formCoverIndex = 0;    // index of the cover image
 let allCategoriesForm = [];
 
 /* ── LOAD CATEGORIES FROM API (dynamic, user-managed) ───────────── */
-async function initSelects(preserveValue) {
+async function initSelects(preserveIds) {
   try {
     const res  = await fetch('api/categories.php');
     const cats = await res.json();
     if (Array.isArray(cats)) {
       allCategoriesForm = cats;
-      const sel = document.getElementById('f-category');
-      const keep = preserveValue ?? sel.value;
-      sel.innerHTML = '<option value="">Select Category</option>' +
-        cats.map(c => `<option value="${c.category_id}">${escHtmlForm(c.name)}</option>`).join('');
-      if (keep) sel.value = keep;
+      _renderCategoryCheckboxes(cats, preserveIds ?? getCheckedCategoryIds());
     }
   } catch(e) {
     console.warn('Could not load categories from API.', e);
-    const sel = document.getElementById('f-category');
-    if (sel.options.length <= 1) {
-      sel.innerHTML = '<option value="">No categories found — add one first</option>';
-    }
+    const list = document.getElementById('f-category-list');
+    list.innerHTML = '<div style="padding:0.5rem 0.75rem;color:var(--text-muted);">No categories found — add one first</div>';
   }
-  /* Sizes are hardcoded in HTML — no API call needed */
+}
+
+function _renderCategoryCheckboxes(cats, selectedIds = []) {
+  const list = document.getElementById('f-category-list');
+  if (!cats.length) {
+    list.innerHTML = '<div style="padding:0.5rem 0.75rem;color:var(--text-muted);">No categories yet.</div>';
+    return;
+  }
+  list.innerHTML = cats.map(c => {
+    const checked = selectedIds.includes(c.category_id) ? 'checked' : '';
+    return `<label style="display:flex;align-items:center;gap:0.55rem;padding:0.35rem 0.75rem;cursor:pointer;transition:background 0.12s;"
+               onmouseover="this.style.background='var(--bg-section)'" onmouseout="this.style.background=''">
+      <input type="checkbox" value="${c.category_id}" ${checked}
+             onchange="updatePreview()"
+             style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
+      <span>${escHtmlForm(c.name)}</span>
+    </label>`;
+  }).join('');
+}
+
+function getCheckedCategoryIds() {
+  return Array.from(document.querySelectorAll('#f-category-list input[type=checkbox]:checked'))
+    .map(el => parseInt(el.value));
 }
 
 /* ── ADD CATEGORY MINI-MODAL ─────────────────────────────────────── */
@@ -241,8 +266,10 @@ async function saveNewCategory() {
     const data = await createAdminCategory(name, desc);
     if (data.error) { errEl.textContent = data.error; errEl.style.display = 'block'; return; }
 
-    /* Refresh the category dropdown and auto-select the new one */
-    await initSelects(String(data.category.category_id));
+    /* Refresh the category list and auto-check the new one */
+    const current = getCheckedCategoryIds();
+    current.push(data.category.category_id);
+    await initSelects(current);
     closeAddCategoryModal();
     showToast(`Category "${name}" created!`);
 
@@ -290,9 +317,9 @@ async function initForm() {
       document.getElementById('f-condition').value = p.condition || '';
       setToggle('f-featured-track', 'f-featured-label', !!p.featured);
 
-      /* Set category by category_id */
-      if (p.category_id) {
-        document.getElementById('f-category').value = p.category_id;
+      /* Pre-check categories */
+      if (p.category_ids && p.category_ids.length) {
+        _renderCategoryCheckboxes(allCategoriesForm, p.category_ids.map(Number));
       }
       /* Set size by size_id */
       if (p.size_id) {
@@ -311,7 +338,6 @@ async function initForm() {
       /* Live-preview listeners */
       ['f-name','f-price','f-condition','f-desc']
         .forEach(id => document.getElementById(id).addEventListener('input', updatePreview));
-      document.getElementById('f-category').addEventListener('change', updatePreview);
       document.getElementById('f-size').addEventListener('change', updatePreview);
 
     } catch(e) {
@@ -437,9 +463,10 @@ function toggleFeatured() {
 
 /* ── STOREFRONT PREVIEW ─────────────────────────────────────────── */
 function updatePreview() {
-  const catSel  = document.getElementById('f-category');
   const sizeSel = document.getElementById('f-size');
-  const catName  = catSel.options[catSel.selectedIndex]?.text || '—';
+  const checkedCats = Array.from(document.querySelectorAll('#f-category-list input:checked'))
+    .map(el => el.closest('label').querySelector('span').textContent);
+  const catName  = checkedCats.length ? checkedCats.join(', ') : '—';
   const sizeName = sizeSel.options[sizeSel.selectedIndex]?.text || '—';
 
   document.getElementById('preview-name').textContent     = document.getElementById('f-name').value || 'Product Name';
@@ -470,17 +497,17 @@ function setPreviewMain(src, el) {
 
 /* ── SUBMIT ─────────────────────────────────────────────────────── */
 async function submitForm() {
-  const name        = document.getElementById('f-name').value.trim();
-  const price       = parseFloat(document.getElementById('f-price').value);
-  const category_id = document.getElementById('f-category').value || null;
-  const size_id     = document.getElementById('f-size').value     || null;
-  const condition   = document.getElementById('f-condition').value;
-  const desc        = document.getElementById('f-desc').value.trim();
-  const featured    = document.getElementById('f-featured').value === '1';
+  const name         = document.getElementById('f-name').value.trim();
+  const price        = parseFloat(document.getElementById('f-price').value);
+  const category_ids = getCheckedCategoryIds();
+  const size_id      = document.getElementById('f-size').value || null;
+  const condition    = document.getElementById('f-condition').value;
+  const desc         = document.getElementById('f-desc').value.trim();
+  const featured     = document.getElementById('f-featured').value === '1';
 
-  if (!name)              { showToast('Please enter a product name.'); return; }
+  if (!name)               { showToast('Please enter a product name.'); return; }
   if (!price || isNaN(price)) { showToast('Please enter a valid price.'); return; }
-  if (!condition)         { showToast('Please select a condition.'); return; }
+  if (!condition)          { showToast('Please select a condition.'); return; }
 
   const btn = document.getElementById('submit-btn');
   btn.disabled    = true;
@@ -490,8 +517,8 @@ async function submitForm() {
     name,
     desc,
     price,
-    category_id: category_id ? parseInt(category_id) : null,
-    size_id:     size_id     ? parseInt(size_id)     : null,
+    category_ids,
+    size_id: size_id ? parseInt(size_id) : null,
     condition,
     featured,
     cover_index: formCoverIndex,
@@ -529,3 +556,4 @@ async function submitForm() {
 </script>
 </body>
 </html>
+

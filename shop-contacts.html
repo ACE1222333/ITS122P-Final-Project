@@ -1,93 +1,171 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Contact — Carousell</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <link rel="stylesheet" href="shop-styles.css">
+<style>
+  /* ── Contact hero split ── */
+  .contact-hero { display: grid; grid-template-columns: 1fr 1fr; min-height: 520px; }
+  .contact-hero-left { padding: 4rem 3.5rem; background: var(--bg); display: flex; flex-direction: column; justify-content: center; }
+  .contact-hero-left h1 { font-family: 'Bebas Neue', sans-serif; font-size: 3.2rem; letter-spacing: 0.1em; margin-bottom: 0.5rem; color: var(--text); }
+  .contact-hero-left .subtitle { color: var(--text-muted); font-size: 0.93rem; line-height: 1.75; margin-bottom: 2rem; }
+  .contact-hero-right { overflow: hidden; background: #ccc9c2; }
+  .contact-hero-right img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+
+  /* ── Contact option cards ── */
+  .contact-card { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.2rem; background: var(--bg-card); border: 1.5px solid var(--border); border-radius: 14px; text-decoration: none; color: var(--text); transition: border-color .2s, transform .15s, box-shadow .2s; }
+  .contact-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.09); color: var(--text); }
+  .contact-card-icon { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.3rem; color: #fff; }
+  .contact-card-label { font-size: 0.68rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+  .contact-card-value { font-size: 0.9rem; font-weight: 500; color: var(--text); }
+  .contact-card-arrow { margin-left: auto; color: var(--text-light); font-size: 1rem; transition: transform .2s; }
+  .contact-card:hover .contact-card-arrow { transform: translate(3px, -3px); color: var(--accent); }
+
+  /* ── Follow Us section ── */
+  .follow-section { background: var(--bg-card); border-top: 1px solid var(--border); padding: 5rem 2rem; }
+  .follow-section .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: .1em; color: var(--text); }
+  .follow-section .section-sub { color: var(--text-muted); font-size: 0.88rem; }
+
+  /* ── Social platform cards ── */
+  .platform-card { border-radius: 20px; overflow: hidden; text-decoration: none; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 2.2rem 1.5rem 1.8rem; gap: 0.9rem; transition: transform .2s, box-shadow .2s; border: none; }
+  .platform-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,.18); color: #fff; }
+  .platform-card .plat-icon { width: 64px; height: 64px; border-radius: 16px; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+  .platform-card .plat-icon img { width: 40px; height: 40px; object-fit: contain; }
+  .platform-card .plat-name { font-size: 1.1rem; font-weight: 600; letter-spacing: .03em; }
+  .platform-card .plat-handle { font-size: 0.8rem; opacity: .8; }
+  .platform-card .plat-btn { margin-top: .4rem; background: rgba(255,255,255,.22); border: 1.5px solid rgba(255,255,255,.4); border-radius: 999px; padding: .38rem 1.4rem; font-size: .8rem; font-weight: 600; letter-spacing: .04em; color: #fff; transition: background .2s; }
+  .platform-card:hover .plat-btn { background: rgba(255,255,255,.35); }
+
+  .fb-card   { background: linear-gradient(135deg, #1877F2, #0a5fd4); }
+  .ig-card   { background: radial-gradient(circle at 30% 110%, #fdf497 0%, #fd5949 40%, #d6249f 65%, #285AEB 100%); }
+  .tt-card   { background: linear-gradient(135deg, #010101, #2b2b2b); }
+
+  @media (max-width: 768px) {
+    .contact-hero { grid-template-columns: 1fr; }
+    .contact-hero-right { display: none; }
+    .contact-hero-left { padding: 2.5rem 1.5rem; }
+  }
+</style>
 </head>
 <body>
 
 <!-- Nav, cart, auth, toast injected by shop-layout.js -->
 
-<div class="contacts-top">
-  <div class="contact-form-side">
-    <h1>Contact</h1>
+<!-- ── HERO SPLIT ───────────────────────────────────────────── -->
+<div class="contact-hero">
+  <div class="contact-hero-left">
+    <h1>Contact Us</h1>
+    <p class="subtitle">Have a question or want to know more about an item?<br>Reach out through any of the options below.</p>
 
-    <!-- Login wall — shown when user is NOT logged in -->
-    <div id="contact-login-wall" style="display:none;">
-      <div class="login-wall">
-        <h4>Sign in to Send a Message</h4>
-        <p>You need to be logged in to contact us. Please sign in or create a free account to reach out.</p>
-        <button class="btn-login-prompt" onclick="openAuth()">Log in / Register</button>
-      </div>
-    </div>
+    <div class="d-flex flex-column gap-3">
 
-    <!-- Contact form — shown when user IS logged in -->
-    <div id="contact-form-wrap">
-      <!-- Sender info pulled from session — shown as a read-only badge -->
-      <div id="contact-sender-info" style="
-        background:var(--bg-section);border-radius:8px;padding:0.65rem 0.9rem;
-        margin-bottom:1rem;font-size:0.82rem;color:var(--text-muted);
-        display:flex;align-items:center;gap:0.4rem;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
-        </svg>
-        Sending as <strong id="contact-sender-name" style="color:var(--text);margin-left:0.2rem;">—</strong>
-      </div>
+      <a class="contact-card" href="mailto:">
+        <div class="contact-card-icon" style="background:#EA4335;">
+          <i class="bi bi-envelope-fill"></i>
+        </div>
+        <div>
+          <div class="contact-card-label">Email</div>
+          <div class="contact-card-value">—</div>
+        </div>
+        <i class="bi bi-arrow-up-right contact-card-arrow"></i>
+      </a>
 
-      <!-- PHP integration point: POST to api/contact.php -->
-      <div class="form-group">
-        <input type="text" placeholder="Subject" id="c-subject">
-      </div>
-      <div class="form-group">
-        <textarea placeholder="Write your message…" id="c-message"></textarea>
-      </div>
-      <button class="btn-send" id="contact-send-btn" onclick="sendMessage()">Send Message</button>
+      <a class="contact-card" href="tel:+639XXXXXXXXX">
+        <div class="contact-card-icon" style="background:#25D366;">
+          <i class="bi bi-telephone-fill"></i>
+        </div>
+        <div>
+          <div class="contact-card-label">Phone / SMS</div>
+          <div class="contact-card-value">+63 9XX XXX XXXX</div>
+        </div>
+        <i class="bi bi-arrow-up-right contact-card-arrow"></i>
+      </a>
+
+      <a class="contact-card" href="https://facebook.com/your-page" target="_blank" rel="noopener">
+        <div class="contact-card-icon" style="background:#1877F2;">
+          <i class="bi bi-facebook"></i>
+        </div>
+        <div>
+          <div class="contact-card-label">Facebook</div>
+          <div class="contact-card-value">facebook.com/your-page</div>
+        </div>
+        <i class="bi bi-arrow-up-right contact-card-arrow"></i>
+      </a>
+
+      <a class="contact-card" href="https://instagram.com/your-handle" target="_blank" rel="noopener">
+        <div class="contact-card-icon" style="background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fd5949 45%,#d6249f 60%,#285AEB 90%);">
+          <i class="bi bi-instagram"></i>
+        </div>
+        <div>
+          <div class="contact-card-label">Instagram</div>
+          <div class="contact-card-value">@your-handle</div>
+        </div>
+        <i class="bi bi-arrow-up-right contact-card-arrow"></i>
+      </a>
+
     </div>
   </div>
 
-  <!-- Warm boutique interior — Unsplash (free) -->
-  <div class="contact-img-side">
+  <div class="contact-hero-right">
     <img src="https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=800&q=85&auto=format&fit=crop"
          alt="Contact Carousell" loading="lazy">
   </div>
 </div>
 
-<div class="social-section">
-  <h2>Visit our Social Media Platforms</h2>
-  <div class="social-grid">
-    <div class="social-card" onclick="window.open('https://facebook.com/your-page','_blank')">
-      <div class="social-icon">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Facebook_Logo_2023.png/1280px-Facebook_Logo_2023.png" alt="Facebook" loading="lazy">
+<!-- ── FOLLOW US ─────────────────────────────────────────────── -->
+<div class="follow-section">
+  <div class="text-center mb-5">
+    <div class="section-title">Follow Us</div>
+    <div class="section-sub">Stay updated with our latest drops and announcements.</div>
+  </div>
+
+  <div class="container">
+    <div class="row g-4 justify-content-center">
+
+      <div class="col-12 col-sm-6 col-md-4">
+        <a class="platform-card fb-card w-100" href="https://facebook.com/your-page" target="_blank" rel="noopener">
+          <div class="plat-icon"><i class="bi bi-facebook"></i></div>
+          <div class="plat-name">Facebook</div>
+          <div class="plat-handle">@your-page</div>
+          <div class="plat-btn">Visit Page</div>
+        </a>
       </div>
-      <button class="btn-social">Facebook</button>
-    </div>
-    <div class="social-card" onclick="window.open('https://instagram.com/your-handle','_blank')">
-      <div class="social-icon">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSuH7c5cLpGehi0b4iQk90fXUzC9p7Ebla13w&s" alt="Instagram" loading="lazy">
+
+      <div class="col-12 col-sm-6 col-md-4">
+        <a class="platform-card ig-card w-100" href="https://instagram.com/your-handle" target="_blank" rel="noopener">
+          <div class="plat-icon"><i class="bi bi-instagram"></i></div>
+          <div class="plat-name">Instagram</div>
+          <div class="plat-handle">@your-handle</div>
+          <div class="plat-btn">Follow Us</div>
+        </a>
       </div>
-      <button class="btn-social">Instagram</button>
-    </div>
-    <div class="social-card" onclick="window.open('https://tiktok.com/@your-handle','_blank')">
-      <div class="social-icon">
-        <img src="https://www.citypng.com/public/uploads/preview/tik-tok-logo-transparent-square-701751694793273qftyarldbx.png" alt="TikTok" loading="lazy">
+
+      <div class="col-12 col-sm-6 col-md-4">
+        <a class="platform-card tt-card w-100" href="https://tiktok.com/@your-handle" target="_blank" rel="noopener">
+          <div class="plat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#fff" width="36" height="36"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.17 8.17 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg>
+          </div>
+          <div class="plat-name">TikTok</div>
+          <div class="plat-handle">@your-handle</div>
+          <div class="plat-btn">Watch Now</div>
+        </a>
       </div>
-      <button class="btn-social">TikTok</button>
+
     </div>
   </div>
 </div>
 
 <footer><span>© 2025 Carousell. All rights reserved.</span></footer>
 
-<script src="shop-shared.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="shop-shared.js?v=2"></script>
 <script src="shop-layout.js"></script>
-<script>
-initShopLayout('contacts');
-/* setCurrentUser in shop-shared.js already manages contact-login-wall
-   and contact-form-wrap on every auth change, including page load via
-   restoreSession() called inside initShopLayout. No extra code needed. */
-</script>
+<script>initShopLayout('contacts');</script>
 </body>
 </html>
+

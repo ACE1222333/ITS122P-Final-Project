@@ -1,8 +1,4 @@
-<!-- ============================================================
-     categories.dtd
-     Document Type Definition for product categories.
-     Categories are user-managed through the admin panel.
-============================================================ -->
+<!-- Categories shown in the shop filter bar and admin category manager -->
 
 <!ELEMENT categories (category*)>
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -167,7 +167,10 @@ function applyFilters() {
   let list = products.filter(p => {
     if (q        && !p.name.toLowerCase().includes(q))                      return false;
     if (status   && (p.status || 'available') !== status)                   return false;
-    if (category && (p.category || '').toLowerCase() !== category)          return false;
+    if (category) {
+      const pCats = (p.categories || []).map(c => c.name.toLowerCase());
+      if (!pCats.includes(category)) return false;
+    }
     if (size     && (p.size || '').toLowerCase() !== size.toLowerCase())     return false;
     return true;
   });
@@ -232,12 +235,12 @@ function renderProductTable(list) {
             </div>
           </div>
         </td>
-        <td>${p.category || '—'}</td>
+        <td>${(p.categories && p.categories.length) ? p.categories.map(c => c.name).join(', ') : '—'}</td>
         <td>₱${Number(p.price).toLocaleString()}</td>
         <td>${p.size || '—'}</td>
         <td>${conditionBadge(p.condition)}</td>
         <td>${statusBadge(status)}</td>
-        <td>${p.featured ? '<span class="badge badge-featured">★ Featured</span>' : '<span class="badge badge-gray">No</span>'}</td>
+        <td>${p.featured ? '<span class="badge badge-featured">Featured</span>' : '<span class="badge badge-gray">No</span>'}</td>
         <td>${actionsHtml}</td>
       </tr>`;
   }).join('');
@@ -259,3 +262,4 @@ function confirmDeleteProduct(id) {
 </script>
 </body>
 </html>
+

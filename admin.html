@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -196,7 +196,7 @@
         <div class="stat-sub">all time</div>
       </div>
       <div class="stat-card accent-red">
-        <span class="stat-badge urgent" id="s-pending-badge">!</span>
+        <span class="stat-badge urgent" id="s-pending-badge" style="display:none;">!</span>
         <div class="stat-label">Pending Verification</div>
         <div class="stat-value loading" id="s-pending">—</div>
         <div class="stat-sub">need your review</div>
@@ -349,7 +349,7 @@ function renderPendingList(list, totalPending) {
       <span style="font-weight:600;">₱${Number(o.amount).toLocaleString()}</span>
       <span style="color:var(--text-muted);">${o.date}</span>
       <span>
-        <a class="btn-review-go" href="admin-orders.html">Review →</a>
+        <a class="btn-review-go" href="admin-payments.html">Review →</a>
       </span>
     </div>`).join('');
 }
@@ -358,8 +358,9 @@ function escHtml(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-/* Load on page open */
-loadDashboard();
+/* Load on page open — small delay lets checkAdminAuth finish first */
+setTimeout(loadDashboard, 100);
 </script>
 </body>
 </html>
+

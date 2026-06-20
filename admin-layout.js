@@ -1,4 +1,4 @@
-/* ════════════════════════════════════════════════════════════════
+﻿/* ════════════════════════════════════════════════════════════════
    admin-layout.js — Injects shared topnav, sidebar, confirm dialog,
    and toast into every admin page.
 
@@ -16,20 +16,36 @@ function _injectTopnav() {
   const nav = document.createElement('nav');
   nav.className = 'topnav';
   nav.innerHTML = `
-    <div class="topnav-logo">Carousell</div>
+    <div style="display:flex;align-items:center;gap:0.8rem;">
+      <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleAdminSidebar()" aria-label="Toggle menu">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topnav-logo">Carousell</div>
+    </div>
     <ul class="topnav-links">
       <li><a href="shop.html?from=admin">View Shop</a></li>
     </ul>`;
   document.body.prepend(nav);
 }
 
+function toggleAdminSidebar() {
+  document.querySelector('.sidebar')?.classList.toggle('open');
+  document.getElementById('sidebar-backdrop')?.classList.toggle('show');
+}
+
+function closeAdminSidebar() {
+  document.querySelector('.sidebar')?.classList.remove('open');
+  document.getElementById('sidebar-backdrop')?.classList.remove('show');
+}
+
 function _injectSidebar(activeNavId) {
   const nav_items = [
-    { id: 'dashboard',   label: 'Dashboard',    href: 'admin.html' },
+    { id: 'dashboard',  label: 'Dashboard',    href: 'admin.html' },
+    { id: 'payments',   label: 'Payments',     href: 'admin-payments.html' },
+    { id: 'orders',     label: 'Orders',       href: 'admin-orders.html' },
     { id: 'products',   label: 'Products',     href: 'admin-products.html' },
     { id: 'categories', label: 'Categories',   href: 'admin-categories.html' },
-    { id: 'orders',     label: 'Orders',       href: 'admin-orders.html' },
-    { id: 'featured',   label: 'Featured',     href: 'admin-featured.html' },
+    { id: 'reviews',    label: 'Reviews',      href: 'admin-reviews.html' },
     { id: 'profile',    label: 'Edit Profile', href: 'admin-profile.html' },
   ];
 
@@ -50,11 +66,18 @@ function _injectSidebar(activeNavId) {
 
 function _injectOverlays() {
   document.body.insertAdjacentHTML('beforeend', `
+    <!-- Sidebar backdrop (mobile) -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeAdminSidebar()"></div>
     <!-- Confirm Dialog -->
     <div class="confirm-overlay" id="confirm-overlay">
       <div class="confirm-box">
         <div class="confirm-title" id="confirm-title">Confirm</div>
         <div class="confirm-msg"   id="confirm-msg">Are you sure?</div>
+        <textarea id="confirm-reason-input" placeholder="Reason for rejection (optional)"
+          style="display:none;width:100%;margin-top:0.75rem;padding:0.5rem 0.65rem;
+                 border:1.5px solid var(--border);border-radius:8px;font-family:inherit;
+                 font-size:0.82rem;resize:vertical;min-height:64px;box-sizing:border-box;
+                 background:var(--bg-input,#fff);color:var(--text);line-height:1.5;"></textarea>
         <div class="confirm-actions">
           <button class="btn-confirm-del" id="confirm-ok">Confirm</button>
           <button class="btn-confirm-cancel" onclick="closeConfirm()">Cancel</button>
@@ -81,6 +104,8 @@ function _confirmLogout() {
       }
     } catch(e) { /* ignore network errors on logout */ }
     localStorage.removeItem('carousell_session');
-    window.location.href = 'shop.html';
+    window.location.href = 'admin-login.html';
   }, 'Log Out', true);
 }
+
+

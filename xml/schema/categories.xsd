@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- ============================================================
-     categories.xsd
-     XML Schema Definition for product categories.
-============================================================ -->
+<!-- Categories shown in the shop filter bar and admin category manager -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
            elementFormDefault="qualified">
 

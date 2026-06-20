@@ -1,8 +1,4 @@
-<!-- ============================================================
-     reviews.dtd
-     Document Type Definition for customer reviews.
-     Reviews are linked to a user and optionally to a product.
-============================================================ -->
+<!-- Customer reviews shown on the shop reviews page, with optional admin reply and photo uploads -->
 
 <!ELEMENT reviews (review*)>
 
@@ -12,16 +8,29 @@
   reviewer_name,
   product_id?,
   product_name?,
+  product_price?,
+  product_image?,
   rating,
-  comment,
-  date_reviewed
+  body,
+  date_reviewed,
+  admin_reply?,
+  reply_date?,
+  images
 )>
 
 <!ELEMENT review_id     (#PCDATA)>
 <!ELEMENT user_id       (#PCDATA)>
 <!ELEMENT reviewer_name (#PCDATA)>
 <!ELEMENT product_id    (#PCDATA)>
-<!ELEMENT product_name  (#PCDATA)>
-<!ELEMENT rating        (#PCDATA)>   <!-- 1 | 2 | 3 | 4 | 5 -->
-<!ELEMENT comment       (#PCDATA)>
-<!ELEMENT date_reviewed (#PCDATA)>   <!-- YYYY-MM-DD HH:MM:SS -->
+<!ELEMENT product_name  (#PCDATA)>   <!-- name of the product the customer bought -->
+<!ELEMENT product_price (#PCDATA)>   <!-- price of the product at the time of purchase -->
+<!ELEMENT product_image (#PCDATA)>   <!-- cover photo of the product -->
+<!ELEMENT rating        (#PCDATA)>   <!-- star rating given by the customer, 1 to 5 -->
+<!ELEMENT body          (#PCDATA)>   <!-- the written review text -->
+<!ELEMENT date_reviewed (#PCDATA)>
+<!ELEMENT admin_reply   (#PCDATA)>   <!-- reply written by the admin from the admin reviews page -->
+<!ELEMENT reply_date    (#PCDATA)>
+<!ELEMENT images        (review_image*)>
+<!ELEMENT review_image  (image_id, path)>
+<!ELEMENT image_id      (#PCDATA)>
+<!ELEMENT path          (#PCDATA)>   <!-- photo uploaded by the customer along with their review -->

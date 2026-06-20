@@ -1,8 +1,4 @@
-<!-- ============================================================
-     sizes.dtd
-     Document Type Definition for the predefined size catalogue.
-     Sizes are fixed and cannot be created or deleted by users.
-============================================================ -->
+<!-- Clothing sizes available when a customer selects a product in the shop -->
 
 <!ELEMENT sizes (size*)>
 

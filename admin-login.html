@@ -1,5 +1,189 @@
-<!DOCTYPE html>
-<!-- admin-login.html redirects to the unified login page -->
-<html><head><meta http-equiv="refresh" content="0;url=login.html"></head>
-<body><script>window.location.replace('login.html');</script></body>
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login — Carousell</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #0f0f0f;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+.card {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 380px;
+  padding: 2.4rem 2rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+.brand {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: 0.1em;
+  color: #1a1a1a;
+  margin-bottom: 0.2rem;
+}
+.sub {
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 2rem;
+  letter-spacing: 0.04em;
+}
+label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 0.35rem;
+}
+input {
+  width: 100%;
+  background: #f4f3f0;
+  border: 1.5px solid #e0ded9;
+  border-radius: 8px;
+  padding: 0.78rem 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  color: #1a1a1a;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 1rem;
+}
+input:focus { border-color: #1a1a1a; background: #fff; }
+input::placeholder { color: #bbb; }
+.btn {
+  width: 100%;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.85rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-top: 0.3rem;
+}
+.btn:hover:not(:disabled) { opacity: 0.85; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.error {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: #dc2626;
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.82rem;
+  margin-bottom: 1rem;
+  display: none;
+  line-height: 1.5;
+}
+.error.show { display: block; }
+.back {
+  display: block;
+  text-align: center;
+  margin-top: 1.2rem;
+  font-size: 0.8rem;
+  color: #888;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.back:hover { color: #1a1a1a; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="brand">Carousell</div>
+  <div class="sub">Admin Panel — Sign in to continue</div>
+
+  <div class="error" id="err-box" id="err-box"></div>
+
+  <label for="email">Email Address</label>
+  <input type="email" id="email" placeholder="admin@example.com"
+         autocomplete="email" onkeydown="if(event.key==='Enter')login()">
+
+  <label for="pass">Password</label>
+  <input type="password" id="pass" placeholder="••••••••"
+         autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+
+  <button class="btn" id="btn" onclick="login()">Sign In</button>
+  <a class="back" href="shop.html">← Back to Shop</a>
+</div>
+
+<script>
+/* Skip login page if already authenticated as admin */
+(function() {
+  try {
+    const sess = JSON.parse(localStorage.getItem('carousell_session') || 'null');
+    if (sess && sess.token && sess.role === 'admin') {
+      window.location.replace('admin.html');
+    }
+  } catch(e) {}
+})();
+
+function showError(msg) {
+  const el = document.getElementById('err-box');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function clearError() {
+  document.getElementById('err-box').classList.remove('show');
+}
+
+async function login() {
+  clearError();
+  const email = document.getElementById('email').value.trim();
+  const pass  = document.getElementById('pass').value;
+
+  if (!email || !pass) { showError('Please enter your email and password.'); return; }
+
+  const btn = document.getElementById('btn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+
+  try {
+    const res  = await fetch('api/auth.php', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ action: 'login', email, password: pass }),
+    });
+
+    let data;
+    try { data = await res.json(); }
+    catch(e) { showError('Server error — check that XAMPP is running and you are on http://localhost/'); return; }
+
+    if (data.error) { showError(data.error); return; }
+
+    if (!data.success || !data.user) { showError('Login failed. Please try again.'); return; }
+
+    if (data.user.role !== 'admin') {
+      showError('This account does not have admin access. Only admin accounts can log in here.');
+      return;
+    }
+
+    /* ✓ Admin authenticated — store session and go to dashboard */
+    localStorage.setItem('carousell_session', JSON.stringify(data.user));
+    window.location.href = 'admin.html';
+
+  } catch(e) {
+    showError('Network error. Make sure you are accessing via http://localhost/ (not Live Server).');
+    console.error(e);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign In';
+  }
+}
+</script>
+</body>
 </html>
+

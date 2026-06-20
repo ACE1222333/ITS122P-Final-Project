@@ -26,7 +26,9 @@ try {
     $orders = $db->query(
         "SELECT
            COUNT(*)                                          AS total,
-           SUM(status = 'Pending Verification')             AS pending_verification,
+           SUM(status IN ('Payment Verification','Pending Verification','Pending Payment')) AS pending_verification,
+           SUM(status = 'Payment Accepted')  AS payment_accepted,
+           SUM(status = 'Payment Rejected')  AS payment_rejected,
            SUM(status = 'Pending Payment')                  AS pending_payment,
            SUM(status = 'Processing')                       AS processing,
            SUM(status IN ('Shipping','Shipped'))            AS in_transit,
@@ -67,7 +69,8 @@ try {
          FROM orders o
          JOIN users u ON u.user_id = o.user_id
          LEFT JOIN payments py ON py.order_id = o.order_id
-         WHERE o.status = 'Pending Verification'
+         WHERE o.status IN ('Payment Verification','Pending Verification','Pending Payment')
+            OR py.status = 'Pending Verification'
          ORDER BY o.date_ordered ASC
          LIMIT 8"
     )->fetchAll();

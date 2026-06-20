@@ -1,11 +1,12 @@
-/* ════════════════════════════════════════════════════════════════
+﻿/* ════════════════════════════════════════════════════════════════
    admin-data.js — Shared data layer for all admin pages.
    All data is fetched from the PHP API (no localStorage products/orders).
 ════════════════════════════════════════════════════════════════ */
 
 /* ── GLOBAL STATE ────────────────────────────────────────────── */
 let products = [];
-let orders   = [];
+let orders   = [];   /* approved-payment orders — used by admin-orders.html */
+let payments = [];   /* all orders/payments   — used by admin-payments.html */
 
 /* ── AUTH HELPERS ────────────────────────────────────────────── */
 function getAdminToken() {
@@ -20,10 +21,20 @@ function getAdminToken() {
 function checkAdminAuth() {
   try {
     const sess = localStorage.getItem('carousell_session');
-    if (!sess) { window.location.href = 'shop.html'; return; }
+    if (!sess) {
+      window.location.href = 'admin-login.html';
+      return;
+    }
     const obj = JSON.parse(sess);
-    if (!obj.token || obj.role !== 'admin') { window.location.href = 'shop.html'; }
-  } catch(e) { window.location.href = 'shop.html'; }
+    if (!obj.token || obj.role !== 'admin') {
+      /* Clear stale session so login page starts fresh */
+      localStorage.removeItem('carousell_session');
+      window.location.href = 'admin-login.html';
+    }
+  } catch(e) {
+    localStorage.removeItem('carousell_session');
+    window.location.href = 'admin-login.html';
+  }
 }
 
 /* ── FETCH WRAPPER ───────────────────────────────────────────── */
@@ -56,8 +67,14 @@ async function adminFetch(url, options = {}) {
 
   const res = await fetch(finalUrl, { ...options, headers });
   if (res.status === 401) {
-    showToast('Session expired. Please log in again.');
-    setTimeout(() => { window.location.href = 'shop.html'; }, 1500);
+    /* Only redirect if we're not already on the login page */
+    if (!window.location.pathname.includes('admin-login')) {
+      showToast('Session expired — please sign in again.');
+      setTimeout(() => {
+        localStorage.removeItem('carousell_session');
+        window.location.href = 'admin-login.html';
+      }, 1800);
+    }
     throw new Error('Unauthorized');
   }
   return res;
@@ -98,6 +115,23 @@ async function fetchOrders(onLoaded) {
   if (typeof onLoaded === 'function') onLoaded(orders);
 }
 
+async function fetchPayments(onLoaded) {
+  try {
+    const res  = await adminFetch('api/payments.php');
+    const data = await res.json();
+    if (Array.isArray(data)) {
+      payments = data;
+    } else {
+      console.error('fetchPayments: unexpected response', data);
+      payments = [];
+    }
+  } catch(e) {
+    console.error('fetchPayments error:', e);
+    payments = [];
+  }
+  if (typeof onLoaded === 'function') onLoaded(payments);
+}
+
 /* ── PRODUCT CRUD ────────────────────────────────────────────── */
 async function createProduct(data) {
   const res  = await adminFetch('api/products/create.php', {
@@ -135,12 +169,34 @@ async function deleteProduct(productId, onSuccess) {
 }
 
 /* ── ORDER STATUS ────────────────────────────────────────────── */
-async function updateOrderStatus(orderId, orderStatus, paymentStatus) {
+async function updateOrderStatus(orderId, orderStatus, paymentStatus, rejectionReason = '') {
+  const payload = { order_id: orderId, order_status: orderStatus, payment_status: paymentStatus };
+  if (rejectionReason) payload.rejection_reason = rejectionReason;
   const res = await adminFetch('api/orders/update_status.php', {
     method: 'POST',
-    body:   JSON.stringify({ order_id: orderId, order_status: orderStatus, payment_status: paymentStatus }),
+    body:   JSON.stringify(payload),
   });
   return res.json();
+}
+
+/* Opens the confirm dialog with a visible rejection-reason textarea.
+   onConfirm(reason) receives the trimmed text the admin entered. */
+function openRejectWithReason(title, msg, onConfirm, confirmLabel = 'Reject') {
+  const inputEl = document.getElementById('confirm-reason-input');
+  if (inputEl) { inputEl.style.display = 'block'; inputEl.value = ''; }
+
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent   = msg;
+  const okBtn = document.getElementById('confirm-ok');
+  okBtn.textContent = confirmLabel;
+  okBtn.className   = 'btn-confirm-del';
+  okBtn.onclick = () => {
+    const reason = inputEl ? inputEl.value.trim() : '';
+    if (inputEl) { inputEl.style.display = 'none'; inputEl.value = ''; }
+    closeConfirm();
+    onConfirm(reason);
+  };
+  document.getElementById('confirm-overlay').classList.add('open');
 }
 
 /* ── CATEGORIES (dynamic, user-managed) ─────────────────────── */
@@ -234,6 +290,9 @@ function openConfirm(title, msg, onConfirm, confirmLabel = 'Confirm', isDanger =
 
 function closeConfirm() {
   document.getElementById('confirm-overlay').classList.remove('open');
+  /* Always hide & clear the reason textarea so it doesn't leak into normal confirms */
+  const inputEl = document.getElementById('confirm-reason-input');
+  if (inputEl) { inputEl.style.display = 'none'; inputEl.value = ''; }
 }
 
 /* ── BADGE HELPERS ───────────────────────────────────────────── */
@@ -243,12 +302,31 @@ function conditionBadge(condition) {
 }
 
 function paymentStatusBadge(status) {
-  const map = { 'Pending Verification':'badge-yellow', 'Verified':'badge-green', 'Rejected':'badge-red' };
+  const map = {
+    'Pending Verification': 'badge-yellow',
+    'Approved':             'badge-green',
+    'Rejected':             'badge-red',
+    /* legacy */
+    'Verified':             'badge-green',
+  };
   return `<span class="badge ${map[status]||'badge-gray'}">${status}</span>`;
 }
 
 function orderStatusBadge(status) {
-  const map = { 'Pending Payment':'badge-gray', 'Processing':'badge-blue', 'Shipping':'badge-yellow', 'Shipped':'badge-blue', 'Completed':'badge-green' };
+  const map = {
+    'Payment Verification': 'badge-yellow',
+    'Payment Accepted':     'badge-green',
+    'Payment Rejected':     'badge-red',
+    'Processing':           'badge-blue',
+    'Shipping':             'badge-yellow',
+    'Shipped':              'badge-blue',
+    'Completed':            'badge-green',
+    'Cancelled':            'badge-gray',
+    /* legacy */
+    'Pending Payment':      'badge-gray',
+    'Pending Verification': 'badge-yellow',
+    'Rejected':             'badge-red',
+  };
   return `<span class="badge ${map[status]||'badge-gray'}">${status}</span>`;
 }
 
@@ -273,3 +351,4 @@ function setToggle(trackId, labelId, isOn) {
   isOn ? track.classList.add('on') : track.classList.remove('on');
   label.textContent = isOn ? 'Featured' : 'Not Featured';
 }
+

@@ -1,8 +1,4 @@
-<!-- ============================================================
-     orders.dtd
-     Document Type Definition for customer orders.
-     Each order contains one or more items and one payment record.
-============================================================ -->
+<!-- Orders placed by customers through the shop checkout and tracked in the admin orders page -->
 
 <!ELEMENT orders (order*)>
 
@@ -14,21 +10,22 @@
   status,
   date_ordered,
   reservation_expires_at?,
+  rejection_reason?,
   items,
   payment
 )>
 
-<!-- Order header -->
-<!ELEMENT order_id                (#PCDATA)>
-<!ELEMENT user_id                 (#PCDATA)>
-<!ELEMENT total_amount            (#PCDATA)>
-<!ELEMENT status                  (#PCDATA)>
-  <!-- Pending Payment | Pending Verification | Processing |
-       Shipping | Shipped | Completed | Rejected | Cancelled -->
-<!ELEMENT date_ordered            (#PCDATA)>   <!-- YYYY-MM-DD HH:MM:SS -->
-<!ELEMENT reservation_expires_at  (#PCDATA)>   <!-- YYYY-MM-DD HH:MM:SS -->
+<!-- Basic order details shown in the admin orders table -->
+<!ELEMENT order_id               (#PCDATA)>
+<!ELEMENT user_id                (#PCDATA)>
+<!ELEMENT total_amount           (#PCDATA)>
+<!ELEMENT status                 (#PCDATA)>
+  <!-- Pending Payment | Pending Verification | Processing | Shipping | Shipped | Completed | Rejected | Cancelled -->
+<!ELEMENT date_ordered           (#PCDATA)>
+<!ELEMENT reservation_expires_at (#PCDATA)>   <!-- deadline for the customer to upload payment proof -->
+<!ELEMENT rejection_reason       (#PCDATA)>   <!-- message shown to the customer when admin rejects an order -->
 
-<!-- Customer info (denormalised snapshot) -->
+<!-- Buyer details saved at the time of checkout from their profile -->
 <!ELEMENT customer (
   name,
   email,
@@ -40,7 +37,7 @@
 <!ELEMENT phone   (#PCDATA)>
 <!ELEMENT address (#PCDATA)>
 
-<!-- Order items -->
+<!-- The clothing items the customer added to cart before checking out -->
 <!ELEMENT items  (item*)>
 <!ELEMENT item (
   product_id,
@@ -54,7 +51,7 @@
 <!ELEMENT price        (#PCDATA)>
 <!ELEMENT image        (#PCDATA)>
 
-<!-- Payment -->
+<!-- GCash payment submitted by the customer on the payment page -->
 <!ELEMENT payment (
   payment_id?,
   method,
@@ -64,11 +61,10 @@
   amount,
   date_paid?
 )>
-<!ELEMENT payment_id      (#PCDATA)>
-<!ELEMENT method          (#PCDATA)>   <!-- GCash -->
-<!ELEMENT reference_number (#PCDATA)>
-<!ELEMENT proof_image     (#PCDATA)>   <!-- URL -->
-<!ELEMENT payment_status  (#PCDATA)>
-  <!-- Pending Verification | Verified | Rejected -->
-<!ELEMENT amount          (#PCDATA)>
-<!ELEMENT date_paid       (#PCDATA)>
+<!ELEMENT payment_id       (#PCDATA)>
+<!ELEMENT method           (#PCDATA)>   <!-- GCash -->
+<!ELEMENT reference_number (#PCDATA)>   <!-- GCash reference number entered by the customer -->
+<!ELEMENT proof_image      (#PCDATA)>   <!-- screenshot of the GCash payment uploaded by the customer -->
+<!ELEMENT payment_status   (#PCDATA)>   <!-- Pending Verification | Verified | Rejected -->
+<!ELEMENT amount           (#PCDATA)>
+<!ELEMENT date_paid        (#PCDATA)>

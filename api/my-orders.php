@@ -11,23 +11,28 @@ $user = requireAuth();
 try {
     $db = getDB();
 
-    /* ── Check if reservation_expires_at column exists (added in migration) ── */
-    $expiryCol = '';
+    /* ── Check optional columns added by migrations ── */
+    $expiryCol    = '';
+    $rejectionCol = '';
     try {
         $chk = $db->query("SHOW COLUMNS FROM orders LIKE 'reservation_expires_at'");
-        if ($chk->rowCount() > 0) {
-            $expiryCol = ', o.reservation_expires_at';
-        }
-    } catch (Throwable $e) { /* column check failed — skip it */ }
+        if ($chk->rowCount() > 0) $expiryCol = ', o.reservation_expires_at';
+    } catch (Throwable $e) { /* skip */ }
+    try {
+        $chk = $db->query("SHOW COLUMNS FROM orders LIKE 'rejection_reason'");
+        if ($chk->rowCount() > 0) $rejectionCol = ', o.rejection_reason';
+    } catch (Throwable $e) { /* skip */ }
 
     /* ── Fetch all orders for this user ──────────────────────────────────── */
     $stmt = $db->prepare(
         "SELECT o.order_id, o.total_amount, o.status AS order_status,
-                o.date_ordered $expiryCol,
+                o.date_ordered $expiryCol $rejectionCol,
                 py.payment_method, py.reference_number,
-                py.status AS payment_status, py.proof_image, py.date_paid
+                py.status AS payment_status, py.proof_image, py.date_paid,
+                r.receipt_number, r.generated_at AS receipt_generated_at
          FROM orders o
          LEFT JOIN payments py ON py.order_id = o.order_id
+         LEFT JOIN receipts r  ON r.order_id  = o.order_id
          WHERE o.user_id = ?
          ORDER BY o.date_ordered DESC"
     );
@@ -97,6 +102,7 @@ try {
             'dateOrdered'          => $o['date_ordered'],
             'totalAmount'          => (float)$o['total_amount'],
             'reservationExpiresAt' => $o['reservation_expires_at'] ?? null,
+            'rejectionReason'      => $o['rejection_reason'] ?? null,
             'products'             => $itemMap[$o['order_id']] ?? [],
             'payment' => [
                 'method'          => $o['payment_method'] ?? 'GCash',
@@ -105,6 +111,10 @@ try {
                 'proofImage'      => $o['proof_image'] ?? '',
                 'datePaid'        => $o['date_paid'] ?? '',
             ],
+            'receipt' => $o['receipt_number'] ? [
+                'receiptNumber' => $o['receipt_number'],
+                'generatedAt'   => $o['receipt_generated_at'],
+            ] : null,
         ];
     }, $orderRows);
 

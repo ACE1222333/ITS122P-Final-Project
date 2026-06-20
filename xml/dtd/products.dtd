@@ -1,8 +1,4 @@
-<!-- ============================================================
-     products.dtd
-     Document Type Definition for the Carousell Products feed.
-     Each product is a unique second-hand clothing item.
-============================================================ -->
+<!-- Second-hand clothing items listed in the shop and managed in the admin products page -->
 
 <!ELEMENT products (product*)>
 
@@ -27,14 +23,14 @@
 <!ELEMENT name        (#PCDATA)>
 <!ELEMENT description (#PCDATA)>
 <!ELEMENT price       (#PCDATA)>
-<!ELEMENT condition   (#PCDATA)>   <!-- Like New | Excellent | Good | Fair -->
+<!ELEMENT condition   (#PCDATA)>   <!-- Like new | Lightly used | Well used | Heavily used -->
 <!ELEMENT status      (#PCDATA)>   <!-- available | reserved | sold -->
-<!ELEMENT featured    (#PCDATA)>   <!-- 0 | 1 -->
-<!ELEMENT cover_index (#PCDATA)>   <!-- zero-based index of cover image -->
+<!ELEMENT featured    (#PCDATA)>   <!-- 1 means shown in the featured section on the home page, 0 means not -->
+<!ELEMENT cover_index (#PCDATA)>   <!-- which photo in the images list is shown as the product cover -->
 <!ELEMENT category_id (#PCDATA)>
 <!ELEMENT category    (#PCDATA)>
 <!ELEMENT size_id     (#PCDATA)>
 <!ELEMENT size        (#PCDATA)>
 <!ELEMENT images      (image*)>
-<!ELEMENT image       (#PCDATA)>   <!-- URL of uploaded image -->
-<!ELEMENT date_added  (#PCDATA)>   <!-- YYYY-MM-DD HH:MM:SS -->
+<!ELEMENT image       (#PCDATA)>   <!-- file path of a product photo uploaded through the admin product form -->
+<!ELEMENT date_added  (#PCDATA)>

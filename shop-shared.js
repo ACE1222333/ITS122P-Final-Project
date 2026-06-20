@@ -1,4 +1,4 @@
-/* ════════════════════════════════════════════════════════════════
+﻿/* ════════════════════════════════════════════════════════════════
    shop-shared.js — Shared state and functions for all shop pages.
 
    Session token stored in localStorage as carousell_session JSON:
@@ -69,9 +69,10 @@ async function shopFetch(url, options = {}) {
 
   if (token) headers['Authorization'] = 'Bearer ' + token;
 
-  /* GET: append token as query param (bypasses Apache header stripping) */
+  /* Always append token as query param — guarantees auth even when Apache
+     strips the Authorization header (common on shared/XAMPP hosts) */
   let finalUrl = url;
-  if (token && method === 'GET') {
+  if (token) {
     finalUrl += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
   }
 
@@ -165,15 +166,29 @@ function openModal(p) {
   condBadge.textContent = p.condition || '—';
   condBadge.className   = 'condition-badge' + (cond ? ` ${cond}` : '');
 
-  document.getElementById('modal-category-tag').textContent = p.category || '—';
+  const catContainer = document.getElementById('modal-category-tag');
+  const catList = p.categories && p.categories.length ? p.categories : (p.category ? [{name: p.category}] : []);
+  if (catList.length) {
+    catContainer.textContent = catList.map(c => c.name).join(', ');
+  } else {
+    catContainer.textContent = '—';
+  }
 
   const inCart      = cart.some(c => c.product.id == p.id);
   const isUnavailable = p.status === 'sold' || p.status === 'reserved';
   const cartBtn     = document.getElementById('modal-cart-btn');
-  if (p.status === 'sold')     { cartBtn.textContent = 'Sold Out';  cartBtn.disabled = true;  cartBtn.style.opacity = '0.4'; }
-  else if (p.status === 'reserved') { cartBtn.textContent = 'Reserved'; cartBtn.disabled = true;  cartBtn.style.opacity = '0.4'; }
-  else if (inCart)             { cartBtn.textContent = '✓ In Cart'; cartBtn.disabled = true;  cartBtn.style.opacity = '0.5'; }
-  else                         { cartBtn.textContent = 'Add to Cart'; cartBtn.disabled = false; cartBtn.style.opacity = ''; }
+  const buyBtn      = document.getElementById('modal-buy-btn') || document.querySelector('.btn-buy');
+
+  if (p.status === 'sold')          { cartBtn.textContent = 'Sold Out';          cartBtn.disabled = true;  cartBtn.style.opacity = '0.4'; }
+  else if (p.status === 'reserved') { cartBtn.textContent = 'Reserved';           cartBtn.disabled = true;  cartBtn.style.opacity = '0.4'; }
+  else if (inCart)                  { cartBtn.textContent = 'In Cart';            cartBtn.disabled = true;  cartBtn.style.opacity = '0.5'; }
+  else if (!currentUser)            { cartBtn.textContent = 'Log in to Add to Cart'; cartBtn.disabled = false; cartBtn.style.opacity = ''; }
+  else                              { cartBtn.textContent = 'Add to Cart';        cartBtn.disabled = false; cartBtn.style.opacity = ''; }
+
+  /* Buy Now button label for guests */
+  if (buyBtn) {
+    buyBtn.textContent = currentUser ? 'Buy Now' : 'Log in to Buy';
+  }
 
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -183,15 +198,31 @@ function renderGallery() {
   const mainImg = document.getElementById('modal-img-main');
   mainImg.src   = currentImages[currentImgIdx] || '';
   mainImg.alt   = currentProduct ? currentProduct.name : '';
+
+  const dotsEl  = document.getElementById('modal-gallery-dots');
   const strip   = document.getElementById('modal-thumbs-strip');
-  strip.innerHTML = '';
+  if (dotsEl)  dotsEl.innerHTML  = '';
+  if (strip)   strip.innerHTML   = '';
+
   if (currentImages.length <= 1) return;
+
   currentImages.forEach((src, i) => {
-    const t = document.createElement('div');
-    t.className = 'thumb-img' + (i === currentImgIdx ? ' active' : '');
-    t.innerHTML = `<img src="${src}" alt="view ${i+1}" loading="lazy">`;
-    t.onclick   = () => { currentImgIdx = i; renderGallery(); };
-    strip.appendChild(t);
+    /* dot */
+    if (dotsEl) {
+      const d = document.createElement('button');
+      d.className = 'gallery-dot' + (i === currentImgIdx ? ' active' : '');
+      d.setAttribute('aria-label', `Photo ${i + 1}`);
+      d.onclick = (e) => { e.stopPropagation(); currentImgIdx = i; renderGallery(); };
+      dotsEl.appendChild(d);
+    }
+    /* thumbnail */
+    if (strip) {
+      const t = document.createElement('div');
+      t.className = 'thumb-img' + (i === currentImgIdx ? ' active' : '');
+      t.innerHTML = `<img src="${src}" alt="view ${i + 1}" loading="lazy">`;
+      t.onclick   = () => { currentImgIdx = i; renderGallery(); };
+      strip.appendChild(t);
+    }
   });
 }
 
@@ -205,6 +236,13 @@ function closeModalOutside(e) { if(e.target===document.getElementById('modal-ove
 ════════════════════════════════════════════════════════════════ */
 function addToCart() {
   if (!currentProduct) return;
+  /* Must be logged in to add items */
+  if (!currentUser) {
+    closeModal();
+    openAuth();
+    showToast('Please log in to add items to your cart.');
+    return;
+  }
   if (currentProduct.status === 'sold')     { showToast('This item has already been sold.'); return; }
   if (currentProduct.status === 'reserved') { showToast('This item is currently reserved by another buyer.'); return; }
   if (cart.some(c => c.product.id == currentProduct.id)) { showToast('Already in cart!'); return; }
@@ -220,6 +258,13 @@ function addToCart() {
 
 function buyNow() {
   if (!currentProduct) return;
+  /* Must be logged in to buy */
+  if (!currentUser) {
+    closeModal();
+    openAuth();
+    showToast('Please log in to place an order.');
+    return;
+  }
   if (!cart.some(c => c.product.id == currentProduct.id)) {
     cart.push({ product: currentProduct, size: currentProduct.size });
     saveCart();
@@ -366,6 +411,21 @@ function setCurrentUser(user) {
   if (contactWall) contactWall.style.display = user ? 'none'  : 'block';
   if (contactForm) contactForm.style.display = user ? 'block' : 'none';
   if (senderName && user) senderName.textContent = `${user.first_name} ${user.last_name}`;
+
+  /* Refresh product modal button labels if the modal is currently open */
+  const modalOverlay = document.getElementById('modal-overlay');
+  if (currentProduct && modalOverlay && modalOverlay.classList.contains('open')) {
+    const cartBtn = document.getElementById('modal-cart-btn');
+    const buyBtn  = document.querySelector('.btn-buy');
+    const inCart  = cart.some(c => c.product.id == currentProduct.id);
+    if (cartBtn && !inCart && currentProduct.status === 'available') {
+      cartBtn.textContent = user ? 'Add to Cart' : 'Log in to Add to Cart';
+      cartBtn.disabled    = false;
+      cartBtn.style.opacity = '';
+    }
+    if (buyBtn) buyBtn.textContent = user ? 'Buy Now' : 'Log in to Buy';
+  }
+
   renderCart();
 }
 
@@ -543,15 +603,25 @@ async function doLogin() {
   }
 }
 
+function togglePassVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  btn.querySelector('.eye-open').style.display = isHidden ? 'none' : '';
+  btn.querySelector('.eye-off').style.display  = isHidden ? '' : 'none';
+}
+
 async function doRegister() {
-  const fname = document.getElementById('reg-fname').value.trim();
-  const lname = document.getElementById('reg-lname').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const phone = document.getElementById('reg-phone').value.trim();
-  const pass  = document.getElementById('reg-pass').value;
+  const fname   = document.getElementById('reg-fname').value.trim();
+  const lname   = document.getElementById('reg-lname').value.trim();
+  const email   = document.getElementById('reg-email').value.trim();
+  const phone   = document.getElementById('reg-phone').value.trim();
+  const pass    = document.getElementById('reg-pass').value;
+  const confirm = document.getElementById('reg-confirm-pass').value;
   if (!fname || !lname) { showAuthError('reg-error', 'Please enter your first and last name.'); return; }
   if (!email)           { showAuthError('reg-error', 'Please enter a valid email.'); return; }
   if (pass.length < 8)  { showAuthError('reg-error', 'Password must be at least 8 characters.'); return; }
+  if (pass !== confirm)  { showAuthError('reg-error', 'Passwords do not match. Please try again.'); return; }
 
   try {
     const res  = await fetch('api/auth.php', {
@@ -615,25 +685,40 @@ function setRating(val) {
   document.querySelectorAll('.star-btn').forEach((btn,i) => btn.classList.toggle('lit', i<val));
 }
 
+/* Tracks which edit forms are open and which images are pending deletion */
+const _openEditForms      = new Set();
+const _pendingDeleteImages = new Map(); // reviewId -> Set of image_ids
+
+function relativeTime(timestamp) {
+  if (!timestamp) return '';
+  const d     = new Date(timestamp * 1000);
+  const today = new Date();
+  const isToday = d.getFullYear() === today.getFullYear()
+               && d.getMonth()    === today.getMonth()
+               && d.getDate()     === today.getDate();
+  if (isToday) {
+    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  }
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
 async function submitReview() {
   if (!currentUser) { showToast('Please log in to post a review.'); openAuth(); return; }
-  const product_id = document.getElementById('rv-product').value;
-  const body       = document.getElementById('rv-body').value.trim();
+  const body = document.getElementById('rv-body').value.trim();
   if (!currentRating) { showToast('Please select a star rating.'); return; }
   if (!body)          { showToast('Please write your review.'); return; }
 
   try {
     const res  = await shopFetch('api/reviews.php', {
       method: 'POST',
-      body:   JSON.stringify({ product_id: product_id || null, rating: currentRating, body }),
+      body:   JSON.stringify({ product_id: null, rating: currentRating, body }),
     });
     const data = await res.json();
     if (data.error) { showToast(data.error); return; }
     if (data.success && data.review) {
       reviews.unshift(data.review);
       renderReviews();
-      document.getElementById('rv-product').value = '';
-      document.getElementById('rv-body').value    = '';
+      document.getElementById('rv-body').value = '';
       setRating(0);
       showToast('Review posted! Thank you!');
     }
@@ -643,20 +728,205 @@ async function submitReview() {
   }
 }
 
+/* ── Edit review ─────────────────────────────────────────────── */
+function toggleEditReview(reviewId) {
+  if (_openEditForms.has(reviewId)) {
+    _openEditForms.delete(reviewId);
+    _pendingDeleteImages.delete(reviewId);
+  } else {
+    _openEditForms.add(reviewId);
+    _pendingDeleteImages.set(reviewId, new Set());
+  }
+  renderReviews();
+  if (_openEditForms.has(reviewId)) {
+    setTimeout(() => document.getElementById(`edit-body-${reviewId}`)?.focus(), 50);
+  }
+}
+
+function toggleDeleteImage(reviewId, imageId) {
+  if (!_pendingDeleteImages.has(reviewId)) _pendingDeleteImages.set(reviewId, new Set());
+  const set = _pendingDeleteImages.get(reviewId);
+  if (set.has(imageId)) set.delete(imageId); else set.add(imageId);
+  /* Just update the visual state without full re-render */
+  const imgEl = document.getElementById(`edit-img-${imageId}`);
+  if (imgEl) imgEl.classList.toggle('pending-delete', set.has(imageId));
+  const btn = document.getElementById(`edit-img-btn-${imageId}`);
+  if (btn) btn.textContent = set.has(imageId) ? 'Undo' : '✕';
+}
+
+async function saveEditReview(reviewId) {
+  const stars = document.querySelectorAll(`#edit-form-${reviewId} .edit-star-btn`);
+  let rating = 0;
+  stars.forEach((s, i) => { if (s.classList.contains('lit')) rating = i + 1; });
+  const body = document.getElementById(`edit-body-${reviewId}`)?.value.trim();
+
+  if (!rating) { showToast('Please select a star rating.'); return; }
+  if (!body)   { showToast('Please write your review.'); return; }
+
+  const btn = document.getElementById(`edit-save-btn-${reviewId}`);
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  try {
+    const fd = new FormData();
+    fd.append('action', 'edit');
+    fd.append('review_id', reviewId);
+    fd.append('rating', rating);
+    fd.append('body', body);
+
+    const deleteSet = _pendingDeleteImages.get(reviewId) || new Set();
+    fd.append('delete_image_ids', [...deleteSet].join(','));
+
+    const newImgInput = document.getElementById(`edit-new-images-${reviewId}`);
+    if (newImgInput && newImgInput.files.length) {
+      [...newImgInput.files].slice(0, 5).forEach(f => fd.append('images[]', f));
+    }
+
+    const res  = await shopFetch('api/reviews.php', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.error) { showToast(data.error); return; }
+
+    const review = reviews.find(r => r.review_id === reviewId);
+    if (review) {
+      review.rating = rating;
+      review.body   = body;
+      review.images = data.images || [];
+    }
+    _openEditForms.delete(reviewId);
+    _pendingDeleteImages.delete(reviewId);
+    renderReviews();
+    showToast('Review updated!');
+  } catch(e) {
+    showToast('Failed to update review.');
+    console.error('saveEditReview:', e);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+  }
+}
+
+function setEditRating(reviewId, val) {
+  document.querySelectorAll(`#edit-form-${reviewId} .edit-star-btn`)
+    .forEach((btn, i) => btn.classList.toggle('lit', i < val));
+}
+
+/* ── Delete review ───────────────────────────────────────────── */
+async function deleteReview(reviewId) {
+  if (!confirm('Delete this review? This cannot be undone.')) return;
+  try {
+    const res  = await shopFetch('api/reviews.php', {
+      method: 'DELETE',
+      body:   JSON.stringify({ review_id: reviewId }),
+    });
+    const data = await res.json();
+    if (data.error) { showToast(data.error); return; }
+    reviews = reviews.filter(r => r.review_id !== reviewId);
+    renderReviews();
+    showToast('Review deleted.');
+  } catch(e) {
+    showToast('Failed to delete review.');
+    console.error('deleteReview:', e);
+  }
+}
+
+/* ── Render ──────────────────────────────────────────────────── */
 function renderReviews() {
   const listEl = document.getElementById('reviews-list');
   if (!listEl) return;
   if (!reviews.length) { listEl.innerHTML='<div class="reviews-empty">No reviews yet. Be the first!</div>'; updateRatingSummary(); return; }
-  listEl.innerHTML = reviews.map(r => `
-    <div class="review-card">
-      <div class="review-header">
-        <span class="review-name">${escHtml(r.name)}</span>
-        <span class="review-date">${r.date}</span>
-      </div>
-      <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
-      ${r.product ? `<div class="review-product-ref">re: ${escHtml(r.product)}</div>` : ''}
-      <div class="review-body">${escHtml(r.body)}</div>
-    </div>`).join('');
+
+  listEl.innerHTML = reviews.map(r => {
+    const rid     = r.review_id;
+    const isOwner = currentUser && currentUser.user_id === r.user_id;
+    const isEditing = _openEditForms.has(rid);
+
+    /* ── Owner actions ── */
+    const ownerActionsHtml = isOwner ? `
+      <div class="review-owner-actions">
+        <button class="btn-review-action" onclick="toggleEditReview(${rid})" title="${isEditing ? 'Cancel' : 'Edit'}">
+          ${isEditing ? 'Cancel' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit'}
+        </button>
+        <button class="btn-review-action btn-review-delete" onclick="deleteReview(${rid})" title="Delete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Delete
+        </button>
+      </div>` : '';
+
+    /* ── Edit form ── */
+    const pendingDeletes = _pendingDeleteImages.get(rid) || new Set();
+    const existingImagesHtml = (r.images && r.images.length) ? `
+      <div class="edit-existing-images">
+        ${r.images.map(img => `
+          <div class="edit-img-wrap${pendingDeletes.has(img.id) ? ' pending-delete' : ''}" id="edit-img-${img.id}">
+            <img src="${escHtml(img.path)}" alt="Review photo">
+            <button class="btn-edit-img-delete" id="edit-img-btn-${img.id}" onclick="toggleDeleteImage(${rid},${img.id})">${pendingDeletes.has(img.id) ? 'Undo' : '✕'}</button>
+          </div>`).join('')}
+      </div>` : '';
+
+    const editFormHtml = isEditing ? `
+      <div class="review-edit-form" id="edit-form-${rid}">
+        <div class="edit-stars-row">
+          ${[1,2,3,4,5].map(v => `<button class="edit-star-btn${v <= r.rating ? ' lit' : ''}" onclick="setEditRating(${rid},${v})">★</button>`).join('')}
+        </div>
+        <textarea class="review-edit-textarea" id="edit-body-${rid}">${escHtml(r.body)}</textarea>
+        ${existingImagesHtml}
+        <label class="rv-file-label" for="edit-new-images-${rid}" style="margin-top:0.5rem;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Add photos…
+        </label>
+        <input type="file" id="edit-new-images-${rid}" class="rv-file-input" multiple accept="image/jpeg,image/png,image/gif,image/webp">
+        <div class="review-edit-btns">
+          <button class="btn-edit-save" id="edit-save-btn-${rid}" onclick="saveEditReview(${rid})">Save</button>
+          <button class="btn-edit-cancel" onclick="toggleEditReview(${rid})">Cancel</button>
+        </div>
+      </div>` : '';
+
+    /* ── Admin reply ── */
+    const adminReplyHtml = r.admin_reply ? `
+      <div class="review-admin-reply">
+        <div class="review-admin-reply-label">
+          <span class="admin-verified-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px;"><polyline points="20 6 9 17 4 12"/></svg>
+            Verified Admin
+          </span>
+          ${r.reply_date ? `<span class="review-admin-reply-date">${escHtml(r.reply_date)}</span>` : ''}
+        </div>
+        <div class="review-admin-reply-text">${escHtml(r.admin_reply)}</div>
+      </div>` : '';
+
+    const timeLabel = r.date;
+
+    const imagesHtml = (r.images && r.images.length && !isEditing) ? `
+      <div class="review-images">
+        ${r.images.map(img => {
+          const src = typeof img === 'object' ? img.path : img;
+          return `<img class="review-img-full" src="${escHtml(src)}" alt="Review photo" loading="lazy" onclick="openReviewPhoto('${escHtml(src)}')")>`;
+        }).join('')}
+      </div>` : '';
+
+    const productChipHtml = (r.product && !isEditing) ? `
+      <div class="review-product-chip-bottom">
+        ${r.product_image ? `<img class="review-product-chip-thumb" src="${escHtml(r.product_image)}" alt="${escHtml(r.product)}" loading="lazy">` : ''}
+        <div class="review-product-chip-info">
+          <div class="review-product-chip-name">${escHtml(r.product)}</div>
+          ${r.product_price ? `<div class="review-product-chip-price">PHP ${Number(r.product_price).toLocaleString()}</div>` : ''}
+        </div>
+      </div>` : '';
+
+    return `
+      <div class="review-card">
+        <div class="review-header">
+          <span class="review-name">${escHtml(r.name)}</span>
+          <div style="display:flex;align-items:center;gap:0.6rem;">
+            <span class="review-date">· ${timeLabel}</span>
+            ${ownerActionsHtml}
+          </div>
+        </div>
+        <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+        ${isEditing ? editFormHtml : `<div class="review-body">${escHtml(r.body)}</div>`}
+        ${imagesHtml}
+        ${adminReplyHtml}
+        ${productChipHtml}
+      </div>`;
+  }).join('');
+
   updateRatingSummary();
 }
 
@@ -695,11 +965,10 @@ function sendMessage() {
   if (!subject) { showToast('Please enter a subject.'); return; }
   if (!message) { showToast('Please write your message.'); return; }
 
-  /* PHP integration point: POST api/contact.php
-     { user_id: currentUser.user_id, name, email, subject, message } */
   const btn = document.getElementById('contact-send-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
 
+  // TODO: wire up to api/contact.php or EmailJS when ready
   setTimeout(() => {
     showToast(`Message sent! We'll be in touch soon.`);
     ['c-subject','c-message'].forEach(id => {
@@ -743,19 +1012,21 @@ function handleProofUpload(e) {
 }
 
 async function confirmPayment() {
-  const name    = document.getElementById('pf-name').value.trim();
-  const phone   = document.getElementById('pf-phone').value.trim();
-  const email   = document.getElementById('pf-email').value.trim();
-  const ref     = document.getElementById('pf-ref').value.trim();
-  const address = document.getElementById('pf-address').value.trim();
+  const name  = document.getElementById('pf-name').value.trim();
+  const phone = document.getElementById('pf-phone').value.trim();
+  const email = document.getElementById('pf-email').value.trim();
+  const ref   = document.getElementById('pf-ref').value.trim();
   const proofInput = document.getElementById('proof-file');
-  const proof   = proofInput ? proofInput.files[0] : null;
+  const proof = proofInput ? proofInput.files[0] : null;
 
-  if (!name)    { showToast('Please enter your full name.'); return; }
-  if (!phone)   { showToast('Please enter your contact number.'); return; }
-  if (!ref)     { showToast('Please enter the GCash reference number.'); return; }
-  if (!address) { showToast('Please enter your delivery address.'); return; }
-  if (!proof)   { showToast('Please upload your GCash payment screenshot.'); return; }
+  if (!name)  { showToast('Please enter your full name.');            return; }
+  if (!phone) { showToast('Please enter your contact number.');       return; }
+  if (!ref)   { showToast('Please enter the GCash reference number.'); return; }
+  if (!proof) { showToast('Please upload your GCash payment screenshot.'); return; }
+
+  /* Validate and compose the Philippine address */
+  const address = window.phAddr ? window.phAddr.validate() : null;
+  if (!address) return;
   if (!currentUser) { showToast('Please log in first.'); openAuth(); return; }
 
   /* Build FormData */
@@ -785,6 +1056,9 @@ async function confirmPayment() {
       updateCartBadge();
       document.getElementById('payment-form-view').style.display = 'none';
       document.getElementById('payment-success').style.display   = 'block';
+      /* Invalidate the orders cache so My Orders fetches fresh data */
+      _ordersCache  = null;
+      _ordersLoaded = false;
     }
   } catch(e) {
     showToast('Network error. Please try again.');
@@ -800,9 +1074,10 @@ function resetPayment() {
   if (prev) prev.style.display = 'none';
   const pf = document.getElementById('proof-file');
   if (pf) pf.value = '';
-  ['pf-name','pf-phone','pf-email','pf-ref','pf-address'].forEach(id => {
-    const el = document.getElementById(id); if(el) el.value='';
+  ['pf-name','pf-phone','pf-email','pf-ref'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
   });
+  if (window.phAddr) window.phAddr.reset();
   updateCartBadge();
   window.location.href = PAGE_URLS.shop;
 }
@@ -832,6 +1107,8 @@ function openOrderHistory(e) {
   _openOrdersPanel('history');
 }
 
+let _ordersRefreshTimer = null;
+
 function _openOrdersPanel(tab) {
   const panel = document.getElementById('orders-panel');
   if (!panel) return;
@@ -842,13 +1119,28 @@ function _openOrdersPanel(tab) {
   document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
 
   switchOrdersTab(tab);
+
+  /* Always fetch fresh data when panel opens — never show stale cache */
+  _ordersCache  = null;
   _fetchAndRenderOrders();
+
+  /* Auto-refresh every 15 seconds so admin status changes reach the user quickly */
+  clearInterval(_ordersRefreshTimer);
+  _ordersRefreshTimer = setInterval(() => {
+    if (document.getElementById('orders-panel')?.classList.contains('open')) {
+      _fetchAndRenderOrders();
+    }
+  }, 15000);
 }
 
 function closeMyOrdersPanel() {
   const panel = document.getElementById('orders-panel');
   if (!panel) return;
   panel.classList.remove('open');
+
+  /* Stop auto-refresh when panel is closed */
+  clearInterval(_ordersRefreshTimer);
+  _ordersRefreshTimer = null;
 
   /* Restore the active nav link for the current page */
   const path  = window.location.pathname.split('/').pop();
@@ -896,7 +1188,7 @@ async function _fetchAndRenderOrders() {
     if (content) {
       content.innerHTML = `
         <div style="text-align:center;padding:3rem 1rem;">
-          <div style="font-size:2rem;margin-bottom:1rem;opacity:0.4;">⚠️</div>
+          <div style="font-size:2rem;margin-bottom:1rem;opacity:0.4;"></div>
           <div style="font-weight:600;margin-bottom:0.5rem;">Could not load orders</div>
           <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1.2rem;line-height:1.6;">
             ${err.message || 'A server error occurred. Please try again.'}
@@ -927,7 +1219,7 @@ function _renderOrdersTab(tab, allOrders) {
   if (!filtered.length) {
     content.innerHTML = `
       <div class="orders-empty" style="border:none;background:transparent;padding:3rem 1rem;">
-        <div class="orders-empty-icon">${isActive ? '📦' : '🕐'}</div>
+        <div class="orders-empty-icon"></div>
         <div class="orders-empty-title">${isActive ? 'No Active Orders' : 'No Order History'}</div>
         <div class="orders-empty-sub" style="font-size:0.8rem;">
           ${isActive
@@ -972,43 +1264,104 @@ async function loadMyOrders() {
 /* Active order statuses → shown in "My Orders"
    Includes 'Pending Payment' for backward compatibility with orders
    placed before the reservation flow was introduced. */
+/* My Orders — everything the user should actively see, INCLUDING rejection
+   so they never lose visibility of a rejected order. */
 const ACTIVE_ORDER_STATUSES = [
-  'Pending Payment', 'Pending Verification', 'Processing', 'Shipping', 'Shipped'
+  'Payment Verification',
+  'Payment Accepted',
+  'Payment Rejected',   /* stays in My Orders so the user sees the rejection */
+  'Processing',
+  'Shipping',
+  'Shipped',
+  /* legacy */
+  'Pending Payment', 'Pending Verification', 'Rejected',
 ];
-/* Final order statuses → shown in "Order History" */
-const FINAL_ORDER_STATUSES = ['Completed', 'Rejected', 'Cancelled'];
+/* Order History — only truly finished orders */
+const FINAL_ORDER_STATUSES = ['Completed', 'Cancelled'];
 
-/* Returns a styled status badge HTML string */
-function orderStatusBadgeShop(status) {
+/* ── User-facing display label for each backend status ────────── */
+function _orderDisplayLabel(orderStatus) {
   const map = {
-    'Pending Verification': 'pending',
+    'Payment Verification': 'Payment Verification',
+    'Payment Accepted':     'Payment Accepted',
+    'Payment Rejected':     'Payment Rejected',
+    'Processing':           'Processing',
+    'Shipping':             'Shipping',
+    'Shipped':              'Shipped',
+    'Completed':            'Completed',
+    'Cancelled':            'Cancelled',
+    /* legacy */
+    'Pending Payment':      'Payment Verification',
+    'Pending Verification': 'Payment Verification',
+    'Rejected':             'Payment Rejected',
+  };
+  return map[orderStatus] || orderStatus;
+}
+
+/* Returns a styled status badge using user-facing labels */
+function orderStatusBadgeShop(status) {
+  const label = _orderDisplayLabel(status);
+  const clsMap = {
+    'Payment Verification': 'pending',
+    'Payment Accepted':     'processing',
+    'Payment Rejected':     'rejected',
     'Processing':           'processing',
     'Shipping':             'shipping',
     'Shipped':              'shipped',
     'Completed':            'completed',
-    'Rejected':             'rejected',
     'Cancelled':            'cancelled',
   };
-  const cls = map[status] || 'cancelled';
-  return `<span class="status-badge ${cls}">${status}</span>`;
+  const cls = clsMap[label] || 'cancelled';
+  return `<span class="status-badge ${cls}">${label}</span>`;
 }
 
-/* Renders the step-by-step progress tracker for an order */
+/* Full 7-step workflow tracker — visible from order creation to completion */
 function renderOrderTracker(orderStatus) {
-  const steps = [
-    { key: 'Pending Verification', label: 'Payment\nVerification' },
-    { key: 'Processing',           label: 'Processing' },
-    { key: 'Shipping',             label: 'Shipping' },
-    { key: 'Shipped',              label: 'Shipped' },
-    { key: 'Completed',            label: 'Completed' },
-  ];
-  const idx = steps.findIndex(s => s.key === orderStatus);
+  const isRejected = ['Payment Rejected','Rejected'].includes(orderStatus);
 
-  return steps.map((step, i) => {
+  /* ── Rejection branch: 3-step short track ── */
+  if (isRejected) {
+    return [
+      { label: 'Payment<br>Submitted',    cls: 'done' },
+      { label: 'Payment<br>Verification', cls: 'done' },
+      { label: 'Payment<br>Rejected',     cls: 'rejected' },
+    ].map(s => `
+      <div class="tracker-step ${s.cls}">
+        <div class="tracker-step-dot"></div>
+        <div class="tracker-line"></div>
+        <div class="tracker-step-label">${s.label}</div>
+      </div>`).join('');
+  }
+
+  /* ── Normal 7-step flow ── */
+  const steps = [
+    'Payment<br>Submitted',
+    'Payment<br>Verification',
+    'Payment<br>Accepted',
+    'Processing',
+    'Shipping',
+    'Shipped',
+    'Completed',
+  ];
+
+  /* Map each status to which step index is currently ACTIVE */
+  const activeIdx = {
+    'Payment Verification': 1,
+    'Pending Verification': 1,
+    'Pending Payment':      1,
+    'Payment Accepted':     2,
+    'Processing':           3,
+    'Shipping':             4,
+    'Shipped':              5,
+    'Completed':            6,
+  };
+
+  const current = activeIdx[orderStatus] ?? 0;
+
+  return steps.map((label, i) => {
     let cls = '';
-    if (i < idx)       cls = 'done';
-    else if (i === idx) cls = 'active';
-    const label = step.label.replace('\n', '<br>');
+    if (i < current)        cls = 'done';
+    else if (i === current) cls = 'active';
     return `
       <div class="tracker-step ${cls}">
         <div class="tracker-step-dot"></div>
@@ -1020,10 +1373,18 @@ function renderOrderTracker(orderStatus) {
 
 /* Renders a full order card for "My Orders" */
 function renderOrderCard(o) {
-  const date       = (o.dateOrdered || '').split(' ')[0];
-  const isPending  = o.orderStatus === 'Pending Verification';
-  const isRejected = ['Rejected','Cancelled'].includes(o.orderStatus);
-  const isActive   = ACTIVE_ORDER_STATUSES.includes(o.orderStatus);
+  const date               = (o.dateOrdered || '').split(' ')[0];
+  /* Check both order status and payment status to determine display state.
+     payment.status = 'Approved' is the canonical signal that fulfillment started. */
+  const isRejectedInActive = ['Payment Rejected','Rejected'].includes(o.orderStatus)
+                          || o.payment?.status === 'Rejected';
+  const isPendingPayment   = !isRejectedInActive
+                          && (o.payment?.status === 'Pending Verification'
+                              || ['Payment Verification','Pending Payment','Pending Verification'].includes(o.orderStatus));
+  const isAccepted         = !isRejectedInActive && !isPendingPayment
+                          && (o.payment?.status === 'Approved'
+                              || ['Payment Accepted','Processing','Shipping','Shipped'].includes(o.orderStatus));
+  const displayLabel = isRejectedInActive ? 'Payment Rejected' : _orderDisplayLabel(o.orderStatus);
 
   const itemsHtml = (o.products || []).map(p => `
     <div class="order-item">
@@ -1037,29 +1398,50 @@ function renderOrderCard(o) {
       <div class="order-item-price">₱${Number(p.price).toLocaleString()}</div>
     </div>`).join('');
 
+  /* ── Status banner ── */
   let bannerHtml = '';
-  if (isPending) {
+  if (isPendingPayment) {
     bannerHtml = `
-      <div class="order-pending-banner" style="margin-bottom:0.9rem;">
+      <div class="order-pending-banner">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span>Your payment is awaiting admin verification. The product is reserved for you while we review your GCash screenshot and reference number.</span>
+        <span>Your payment is under review. We are verifying your GCash screenshot and reference number. Your item is reserved while we check.</span>
       </div>`;
-  } else if (isRejected) {
-    const msg = o.orderStatus === 'Cancelled'
-      ? 'This reservation was automatically cancelled because the review period expired. The product has been released.'
-      : 'Your payment was rejected by our team. The product has been released. Please check your GCash details and place a new order if needed.';
+  } else if (isAccepted) {
     bannerHtml = `
-      <div class="order-rejected-banner" style="margin-bottom:0.9rem;">
+      <div class="order-completed-banner">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Payment accepted! Your order is now being processed.
+      </div>`;
+  } else if (isRejectedInActive) {
+    const reasonHtml = o.rejectionReason
+      ? `<div style="margin-top:0.35rem;font-size:0.8rem;opacity:0.9;">
+           <strong>Reason:</strong> ${escHtml(o.rejectionReason)}
+         </div>`
+      : '';
+    bannerHtml = `
+      <div class="order-rejected-banner">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-        <span>${msg}</span>
+        <div>
+          <div style="font-weight:600;margin-bottom:0.25rem;">Payment Rejected</div>
+          <div>Your payment could not be verified. Please check your GCash details and place a new order.</div>
+          ${reasonHtml}
+          <div style="margin-top:0.5rem;">
+            <a href="shop-products.html" onclick="closeMyOrdersPanel()"
+               style="display:inline-block;background:var(--accent);color:#fff;border-radius:6px;
+                      padding:0.35rem 0.9rem;font-size:0.78rem;font-weight:500;text-decoration:none;">
+              Browse Products →
+            </a>
+          </div>
+        </div>
       </div>`;
   }
 
-  const trackerHtml = isActive && !isPending ? `
+  /* ── Progress tracker — always visible so users know where they are ── */
+  const trackerHtml = `
     <div class="order-tracker">
-      <div class="tracker-label">Order Progress</div>
+      <div class="tracker-label">Order Tracking</div>
       <div class="tracker-steps">${renderOrderTracker(o.orderStatus)}</div>
-    </div>` : '';
+    </div>`;
 
   return `
     <div class="order-card">
@@ -1069,8 +1451,7 @@ function renderOrderCard(o) {
           <div class="order-card-date">Placed ${date}</div>
         </div>
         <div class="order-card-header-right">
-          ${orderStatusBadgeShop(o.payment.status)}
-          ${orderStatusBadgeShop(o.orderStatus)}
+          <span class="status-badge ${isPendingPayment ? 'pending' : isAccepted ? 'processing' : isRejectedInActive ? 'rejected' : 'cancelled'}">${displayLabel}</span>
         </div>
       </div>
       ${bannerHtml ? `<div style="padding:0.9rem 1.4rem 0;">${bannerHtml}</div>` : ''}
@@ -1081,7 +1462,21 @@ function renderOrderCard(o) {
           <div class="order-total-label">Total Paid</div>
           <div class="order-total-amount">₱${Number(o.totalAmount).toLocaleString()}</div>
         </div>
-        ${o.payment.referenceNumber ? `<div style="font-size:0.75rem;color:var(--text-muted);">Ref: <strong>${escHtml(o.payment.referenceNumber)}</strong></div>` : ''}
+        <div style="text-align:right;display:flex;flex-direction:column;gap:0.25rem;align-items:flex-end;">
+          ${o.payment?.status ? `
+            <div style="font-size:0.72rem;color:var(--text-muted);">
+              Payment Status:
+              <strong style="color:${o.payment.status === 'Rejected' ? 'var(--danger,#e53e3e)' : ['Approved','Verified'].includes(o.payment.status) ? 'var(--success,#38a169)' : 'inherit'}">
+                ${escHtml(o.payment.status)}
+              </strong>
+            </div>` : ''}
+          ${o.payment?.referenceNumber ? `<div style="font-size:0.72rem;color:var(--text-muted);">Ref: <strong>${escHtml(o.payment.referenceNumber)}</strong></div>` : ''}
+          ${o.receipt ? `
+            <button class="btn-view-receipt" onclick="viewReceipt(${o.id})" title="View Receipt">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              View Receipt
+            </button>` : ''}
+        </div>
       </div>
     </div>`;
 }
@@ -1121,13 +1516,48 @@ function renderHistoryCard(o) {
       </div>`;
   }).join('');
 
-  const completedBanner = isCompleted ? `
-    <div style="padding:0.9rem 1.4rem 0;">
-      <div class="order-completed-banner">
-        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        Order completed — tap <strong>★ Write a Review</strong> on any item to share your experience.
+  const isPaymentInvalid = ['Payment Rejected','Rejected','Cancelled'].includes(o.orderStatus);
+  const displayLabel     = _orderDisplayLabel(o.orderStatus);
+
+  /* ── Banner for each final state ── */
+  let bannerHtml = '';
+  if (isCompleted) {
+    bannerHtml = `
+      <div style="padding:0.9rem 1.4rem 0;">
+        <div class="order-completed-banner">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Order completed — tap <strong>★ Write a Review</strong> on any item to share your experience.
+        </div>
+      </div>`;
+  } else if (isPaymentInvalid) {
+    const reason = o.orderStatus === 'Cancelled'
+      ? 'Your reservation expired before admin review was completed. The item has been released.'
+      : 'Your payment could not be verified. Please check your GCash details and try again.';
+    bannerHtml = `
+      <div style="padding:0.9rem 1.4rem 0;">
+        <div class="order-rejected-banner">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          <div>
+            <div style="font-weight:600;margin-bottom:0.25rem;">Payment Invalid</div>
+            <div>${reason}</div>
+          </div>
+        </div>
       </div>
-    </div>` : '';
+      <!-- Shop Again prompt -->
+      <div style="padding:0.75rem 1.4rem 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
+        <span style="font-size:0.82rem;color:var(--text-muted);">Want to try again?</span>
+        <a href="shop-products.html"
+           onclick="closeMyOrdersPanel()"
+           style="background:var(--accent);color:#fff;border-radius:8px;padding:0.5rem 1.2rem;
+                  font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:500;
+                  text-decoration:none;transition:opacity 0.2s;"
+           onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+          Browse Products →
+        </a>
+      </div>`;
+  }
+
+  const badgeCls = isCompleted ? 'completed' : isPaymentInvalid ? 'rejected' : 'cancelled';
 
   return `
     <div class="order-card">
@@ -1137,19 +1567,31 @@ function renderHistoryCard(o) {
           <div class="order-card-date">Placed ${date}</div>
         </div>
         <div class="order-card-header-right">
-          ${orderStatusBadgeShop(o.orderStatus)}
+          <span class="status-badge ${badgeCls}">${displayLabel}</span>
         </div>
       </div>
-      ${completedBanner}
+      ${bannerHtml}
       <div class="order-items">${itemsHtml}</div>
+      <!-- Tracker also shown in history so users see the full completed or rejected journey -->
+      <div class="order-tracker">
+        <div class="tracker-label">Order Tracking</div>
+        <div class="tracker-steps">${renderOrderTracker(o.orderStatus)}</div>
+      </div>
       <div class="order-card-footer">
         <div>
           <div class="order-total-label">Total</div>
           <div class="order-total-amount">₱${Number(o.totalAmount).toLocaleString()}</div>
         </div>
-        ${o.payment.referenceNumber
-          ? `<div style="font-size:0.75rem;color:var(--text-muted);">Ref: <strong>${escHtml(o.payment.referenceNumber)}</strong></div>`
-          : ''}
+        <div style="display:flex;flex-direction:column;gap:0.3rem;align-items:flex-end;">
+          ${o.payment?.referenceNumber
+            ? `<div style="font-size:0.75rem;color:var(--text-muted);">Ref: <strong>${escHtml(o.payment.referenceNumber)}</strong></div>`
+            : ''}
+          ${o.receipt ? `
+            <button class="btn-view-receipt" onclick="viewReceipt(${o.id})" title="View Receipt">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              View Receipt
+            </button>` : ''}
+        </div>
       </div>
     </div>`;
 }
@@ -1191,6 +1633,27 @@ function openReviewModal(productId, productName, productImage, orderId) {
 
 function closeReviewModal() {
   document.getElementById('review-modal-overlay').classList.remove('open');
+  const inp = document.getElementById('review-modal-images');
+  if (inp) inp.value = '';
+  const prev = document.getElementById('review-modal-img-previews');
+  if (prev) prev.innerHTML = '';
+}
+
+function previewModalReviewImages(input) {
+  const wrap = document.getElementById('review-modal-img-previews');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  [...input.files].slice(0, 5).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.className = 'rv-img-thumb';
+      img.alt = 'Preview';
+      wrap.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 function closeReviewModalOutside(e) {
@@ -1217,30 +1680,30 @@ function _revShowError(msg) {
 async function submitProductReview() {
   _revShowError('');
 
-  if (!_revRating)                              { _revShowError('Please select a star rating.'); return; }
-
+  if (!_revRating) { _revShowError('Please select a star rating.'); return; }
   const body = document.getElementById('review-modal-body')?.value.trim();
-  if (!body)                                    { _revShowError('Please write your review.'); return; }
+  if (!body)  { _revShowError('Please write your review.'); return; }
 
   const btn = document.getElementById('review-submit-btn');
   btn.disabled = true; btn.textContent = 'Posting…';
 
   try {
-    /* PHP integration point: POST api/reviews.php */
-    const res  = await shopFetch('api/reviews.php', {
-      method: 'POST',
-      body:   JSON.stringify({
-        product_id: _revProductId,
-        rating:     _revRating,
-        body,
-      }),
-    });
-    const data = await res.json();
+    const imageInput = document.getElementById('review-modal-images');
+    const fd = new FormData();
+    fd.append('product_id', _revProductId || '');
+    fd.append('rating', _revRating);
+    fd.append('body', body);
+    if (imageInput && imageInput.files.length) {
+      [...imageInput.files].slice(0, 5).forEach(f => fd.append('images[]', f));
+    }
 
+    const res  = await shopFetch('api/reviews.php', { method: 'POST', body: fd });
+    const data = await res.json();
     if (data.error) { _revShowError(data.error); return; }
 
     closeReviewModal();
-    showToast('Review posted! Thank you ✨');
+    showToast('Review posted! Thank you.');
+    if (document.getElementById('reviews-list')) loadReviews(renderReviews);
 
   } catch(err) {
     _revShowError('Network error. Please try again.');
@@ -1248,6 +1711,19 @@ async function submitProductReview() {
   } finally {
     btn.disabled = false; btn.textContent = 'Post Review';
   }
+}
+
+function openReviewPhoto(src) {
+  let ov = document.getElementById('rv-photo-overlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'rv-photo-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:1200;display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
+    ov.addEventListener('click', () => ov.remove());
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = `<img src="${escHtml(src)}" style="max-width:92vw;max-height:90vh;border-radius:8px;object-fit:contain;" alt="Review photo">`;
+  ov.style.display = 'flex';
 }
 
 function escHtml(s) {
@@ -1292,6 +1768,152 @@ document.addEventListener('keydown', e => {
   }
 });
 
+/* ════════════════════════════════════════════════════════════════
+   RECEIPT MODAL
+   viewReceipt(orderId) — fetches api/receipts.php and shows a modal.
+   downloadReceipt()    — triggers browser print of the modal content.
+════════════════════════════════════════════════════════════════ */
+function _ensureReceiptModal() {
+  if (document.getElementById('receipt-modal-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'receipt-modal-overlay';
+  overlay.className = 'receipt-modal-overlay';
+  overlay.innerHTML = `
+    <div class="receipt-modal" id="receipt-modal">
+      <div class="receipt-modal-header">
+        <div class="receipt-modal-logo">Carousell</div>
+        <button class="receipt-modal-close" onclick="closeReceiptModal()" title="Close">&#x2715;</button>
+      </div>
+      <div class="receipt-modal-body" id="receipt-modal-body">
+        <div class="receipt-loading">Loading receipt…</div>
+      </div>
+      <div class="receipt-modal-actions no-print">
+        <button class="btn-receipt-close no-print" onclick="closeReceiptModal()">Close</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeReceiptModal(); });
+  document.body.appendChild(overlay);
+}
+
+async function viewReceipt(orderId) {
+  _ensureReceiptModal();
+  const overlay = document.getElementById('receipt-modal-overlay');
+  const body    = document.getElementById('receipt-modal-body');
+  overlay.classList.add('open');
+  body.innerHTML = '<div class="receipt-loading">Loading receipt…</div>';
+
+  try {
+    const res  = await shopFetch(`api/receipts.php?order_id=${orderId}`);
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Could not load receipt.');
+    body.innerHTML = _buildReceiptHtml(data);
+  } catch(e) {
+    body.innerHTML = `<div class="receipt-loading" style="color:var(--danger,#e53e3e);">
+      ${escHtml(e.message || 'Failed to load receipt.')}</div>`;
+  }
+}
+
+function closeReceiptModal() {
+  const overlay = document.getElementById('receipt-modal-overlay');
+  if (overlay) overlay.classList.remove('open');
+}
+
+function downloadReceipt() {
+  window.print();
+}
+
+function _buildReceiptHtml(r) {
+  const fmt   = v => Number(v).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtDt = s => s ? new Date(s).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+
+  const itemRows = (r.items || []).map(item => `
+    <tr>
+      <td>${escHtml(item.name)}</td>
+      <td style="text-align:center;">${escHtml(item.size || '—')}</td>
+      <td style="text-align:center;">${item.quantity}</td>
+      <td style="text-align:right;">₱${fmt(item.price)}</td>
+      <td style="text-align:right;">₱${fmt(item.price * item.quantity)}</td>
+    </tr>`).join('');
+
+  const shippingRow = r.shippingFee > 0 ? `
+    <tr class="receipt-subtotal-row">
+      <td colspan="4" style="text-align:right;padding-top:0.6rem;">Shipping Fee</td>
+      <td style="text-align:right;padding-top:0.6rem;">₱${fmt(r.shippingFee)}</td>
+    </tr>` : '';
+
+  return `
+    <div class="receipt-content">
+      <div class="receipt-title-row">
+        <div class="receipt-title">Payment Receipt</div>
+        <div class="receipt-number">${escHtml(r.receiptNumber)}</div>
+      </div>
+
+      <div class="receipt-meta-grid">
+        <div class="receipt-meta-item">
+          <span class="receipt-meta-label">Order ID</span>
+          <span class="receipt-meta-value">#${r.orderId}</span>
+        </div>
+        <div class="receipt-meta-item">
+          <span class="receipt-meta-label">Receipt Date</span>
+          <span class="receipt-meta-value">${fmtDt(r.generatedAt)}</span>
+        </div>
+        <div class="receipt-meta-item">
+          <span class="receipt-meta-label">Payment Date</span>
+          <span class="receipt-meta-value">${fmtDt(r.payment.datePaid)}</span>
+        </div>
+        <div class="receipt-meta-item">
+          <span class="receipt-meta-label">Payment Method</span>
+          <span class="receipt-meta-value">${escHtml(r.payment.method || 'GCash')}</span>
+        </div>
+        <div class="receipt-meta-item">
+          <span class="receipt-meta-label">Reference No.</span>
+          <span class="receipt-meta-value">${escHtml(r.payment.referenceNumber || '—')}</span>
+        </div>
+        <div class="receipt-meta-item">
+          <span class="receipt-meta-label">Payment Status</span>
+          <span class="receipt-meta-value receipt-status-approved">${escHtml(r.payment.status || 'Approved')}</span>
+        </div>
+      </div>
+
+      ${r.deliveryAddress ? `
+      <div class="receipt-delivery-address">
+        <span class="receipt-meta-label">Delivery Address</span>
+        <span class="receipt-meta-value">${escHtml(r.deliveryAddress)}</span>
+      </div>` : ''}
+
+      <div class="receipt-divider"></div>
+
+      <table class="receipt-items-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th style="text-align:center;">Size</th>
+            <th style="text-align:center;">Qty</th>
+            <th style="text-align:right;">Unit Price</th>
+            <th style="text-align:right;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>${itemRows}</tbody>
+        <tfoot>
+          <tr class="receipt-subtotal-row">
+            <td colspan="4" style="text-align:right;">Subtotal</td>
+            <td style="text-align:right;">₱${fmt(r.subtotal)}</td>
+          </tr>
+          ${shippingRow}
+          <tr class="receipt-total-row">
+            <td colspan="4" style="text-align:right;">Total</td>
+            <td style="text-align:right;">₱${fmt(r.totalAmount)}</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="receipt-divider"></div>
+      <div class="receipt-footer-note">
+        Thank you for your purchase! This is your official payment receipt from Carousell.
+      </div>
+    </div>`;
+}
+
 /* ── ADMIN PREVIEW BAR ───────────────────────────────────────────── */
 function checkAdminPreviewMode() {
   if (new URLSearchParams(window.location.search).get('from') === 'admin') {
@@ -1302,3 +1924,6 @@ function checkAdminPreviewMode() {
     if (bar) { bar.classList.add('visible'); document.body.classList.add('admin-preview-mode'); }
   }
 }
+
+
+
