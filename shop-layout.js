@@ -47,7 +47,7 @@ function _injectAdminBar() {
       <div class="admin-bar-dot"></div>
       Admin Preview Mode — you are viewing the shop as customers see it
     </div>
-    <button class="admin-bar-back" onclick="sessionStorage.removeItem('carousell_admin_preview'); window.location.href='admin.html'">
+    <button class="admin-bar-back" onclick="sessionStorage.removeItem('carousell_admin_preview'); window.location.href='admin.php'">
       ← Back to Admin
     </button>`;
   document.body.prepend(bar);
@@ -57,16 +57,17 @@ function _injectAdminBar() {
 /* ── NAV ───────────────────────────────────────────────────────── */
 function _injectNav(activePageId) {
   const pages = [
-    { id:'home',     label:'Home',     href:'shop.html' },
-    { id:'shop',     label:'Shop',     href:'shop-products.html' },
-    { id:'reviews',  label:'Reviews',  href:'shop-reviews.html' },
-    { id:'about',    label:'About',    href:'shop-about.html' },
-    { id:'contacts', label:'Contacts', href:'shop-contacts.html' },
+    { id:'home',     label:'Home',     href:'shop.php' },
+    { id:'shop',     label:'Shop',     href:'shop-products.php' },
+    { id:'reviews',  label:'Reviews',  href:'shop-reviews.php' },
+    { id:'about',    label:'About',    href:'shop-about.php' },
+    { id:'contacts', label:'Contacts', href:'shop-contacts.php' },
+    { id:'faq',      label:'FAQ',      href:'shop-faq.php' },
   ];
 
   const links = pages.map(p =>
     `<li class="nav-item">
-       <a class="nav-link${p.id===activePageId?' active':''}" href="${p.href}">${p.label}</a>
+       <a id="nav-${p.id}" class="nav-link${p.id===activePageId?' active':''}" href="${p.href}">${p.label}</a>
      </li>`
   ).join('');
 
@@ -75,7 +76,7 @@ function _injectNav(activePageId) {
   nav.className = 'navbar navbar-expand-lg fixed-top';
   nav.innerHTML = `
     <div class="container-fluid px-4">
-      <a class="navbar-brand" href="shop.html">Carousell</a>
+      <a class="navbar-brand" href="shop.php">Carousell</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -165,6 +166,7 @@ function _injectProductModal() {
           <div class="modal-condition-row">
             <span class="modal-condition-label">Condition:</span>
             <span class="condition-badge" id="modal-condition-badge">—</span>
+            <span class="condition-desc" id="modal-condition-desc"></span>
           </div>
           <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.65rem;">
             <span class="modal-condition-label">Category:</span>
@@ -413,20 +415,6 @@ function _injectOrdersPanel() {
         <div class="orders-panel-head-inner">
           <div class="orders-panel-title" id="orders-panel-title">My Orders</div>
           <div style="display:flex;align-items:center;gap:0.5rem;">
-            <!-- Refresh button so users can manually sync anytime -->
-            <button onclick="_fetchAndRenderOrders()" title="Refresh orders"
-              style="background:none;border:1.5px solid var(--border);border-radius:8px;
-                     padding:0.3rem 0.6rem;cursor:pointer;font-size:0.75rem;color:var(--text-muted);
-                     font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:0.3rem;
-                     transition:background 0.15s,color 0.15s;"
-              onmouseover="this.style.background='var(--bg-section)';this.style.color='var(--text)'"
-              onmouseout="this.style.background='none';this.style.color='var(--text-muted)'">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-                <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
-              </svg>
-              Refresh
-            </button>
             <button class="orders-panel-close" onclick="closeMyOrdersPanel()">
               <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               Close

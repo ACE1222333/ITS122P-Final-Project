@@ -23,7 +23,7 @@ function _injectTopnav() {
       <div class="topnav-logo">Carousell</div>
     </div>
     <ul class="topnav-links">
-      <li><a href="shop.html?from=admin">View Shop</a></li>
+      <li><a href="shop.php?from=admin">View Shop</a></li>
     </ul>`;
   document.body.prepend(nav);
 }
@@ -40,13 +40,12 @@ function closeAdminSidebar() {
 
 function _injectSidebar(activeNavId) {
   const nav_items = [
-    { id: 'dashboard',  label: 'Dashboard',    href: 'admin.html' },
-    { id: 'payments',   label: 'Payments',     href: 'admin-payments.html' },
-    { id: 'orders',     label: 'Orders',       href: 'admin-orders.html' },
-    { id: 'products',   label: 'Products',     href: 'admin-products.html' },
-    { id: 'categories', label: 'Categories',   href: 'admin-categories.html' },
-    { id: 'reviews',    label: 'Reviews',      href: 'admin-reviews.html' },
-    { id: 'profile',    label: 'Edit Profile', href: 'admin-profile.html' },
+    { id: 'dashboard',  label: 'Dashboard',    href: 'admin.php' },
+    { id: 'payments',   label: 'Payments',     href: 'admin-payments.php' },
+    { id: 'orders',     label: 'Orders',       href: 'admin-orders.php' },
+    { id: 'products',   label: 'Products',     href: 'admin-products.php' },
+    { id: 'reviews',    label: 'Reviews',      href: 'admin-reviews.php' },
+    { id: 'profile',    label: 'Edit Profile', href: 'admin-profile.php' },
   ];
 
   const links = nav_items.map(item => `
@@ -104,7 +103,7 @@ function _confirmLogout() {
       }
     } catch(e) { /* ignore network errors on logout */ }
     localStorage.removeItem('carousell_session');
-    window.location.href = 'admin-login.html';
+    window.location.href = 'admin-login.php';
   }, 'Log Out', true);
 }
 

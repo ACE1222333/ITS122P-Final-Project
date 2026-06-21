@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+<?php
+session_start();
+include('connection.php');
+?>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -19,14 +23,13 @@
 
     <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:1.4rem;">
       Select up to 4 products to feature on the shop homepage.
-      Changes reflect immediately on <a href="shop.html?from=admin" style="color:var(--accent);">shop.html</a>.
+      Changes reflect immediately on <a href="shop.php?from=admin" style="color:var(--accent);">shop.php</a>.
     </p>
 
-    <!-- PHP integration point: sync featured IDs via api/featured.php -->
     <div class="featured-grid" id="featured-grid"></div>
 
     <p style="font-size:0.78rem;color:var(--text-light);font-style:italic;">
-      Featured products are saved to localStorage and synced with shop.html automatically.
+      Featured products are saved to localStorage and synced with shop.php automatically.
     </p>
 
   </main>
@@ -55,7 +58,6 @@ fetchProducts(() => renderFeaturedGrid());
 let pickSelected    = null;
 let currentPickSlot = null;
 
-/* ── FEATURED GRID ─────────────────────────────────────────────── */
 function renderFeaturedGrid() {
   const grid     = document.getElementById('featured-grid');
   const featured = products.filter(p => p.featured).slice(0, 4);
@@ -95,7 +97,6 @@ async function removeFeatured(productId) {
   }
 }
 
-/* ── PICK MODAL ──────────────────────────────────────────────────── */
 function openPick(slotIndex) {
   currentPickSlot = slotIndex;
   pickSelected    = null;
@@ -158,4 +159,3 @@ function closePick() {
 </script>
 </body>
 </html>
-

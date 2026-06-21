@@ -22,14 +22,16 @@ let allCategories  = [];
    NAVIGATION
 ════════════════════════════════════════════════════════════════ */
 const PAGE_URLS = {
-  home:          'shop.html',
-  shop:          'shop-products.html',
-  reviews:       'shop-reviews.html',
-  about:         'shop-about.html',
-  contacts:      'shop-contacts.html',
-  payment:       'shop-payment.html',
-  'my-orders':   'shop-my-orders.html',
-  'order-history': 'shop-order-history.html',
+  home:            'shop.php',
+  shop:            'shop-products.php',
+  reviews:         'shop-reviews.php',
+  about:           'shop-about.php',
+  contacts:        'shop-contacts.php',
+  faq:             'shop-faq.php',
+  terms:           'shop-terms.php',
+  payment:         'shop-payment.php',
+  'my-orders':     'shop-my-orders.php',
+  'order-history': 'shop-order-history.php',
 };
 
 function goPage(id) {
@@ -162,9 +164,18 @@ function openModal(p) {
   document.getElementById('modal-desc').textContent      = p.desc || '';
 
   const condBadge = document.getElementById('modal-condition-badge');
+  const condDesc  = document.getElementById('modal-condition-desc');
   const cond = (p.condition || '').toLowerCase().replace(/\s+/g, '-');
   condBadge.textContent = p.condition || '—';
   condBadge.className   = 'condition-badge' + (cond ? ` ${cond}` : '');
+  const condDescMap = {
+    'brand new':    'Never worn. Tags may still be attached.',
+    'like new':     'Worn once or twice. No visible flaws.',
+    'lightly used': 'Gently worn a few times. Minimal signs of use.',
+    'well used':    'Noticeable wear but still in good shape.',
+    'heavily used': 'Significant wear. Priced accordingly.',
+  };
+  if (condDesc) condDesc.textContent = p.condition ? '— ' + (condDescMap[(p.condition || '').toLowerCase()] || '') : '';
 
   const catContainer = document.getElementById('modal-category-tag');
   const catList = p.categories && p.categories.length ? p.categories : (p.category ? [{name: p.category}] : []);
@@ -587,7 +598,7 @@ async function doLogin() {
       localStorage.setItem('carousell_session', JSON.stringify(data.user));
       /* Admin accounts go straight to the admin dashboard */
       if (data.user.role === 'admin') {
-        window.location.href = 'admin.html';
+        window.location.href = 'admin.php';
         return;
       }
       /* Customer accounts stay on the shop — close modal */
@@ -663,7 +674,7 @@ async function logOut(e) {
   cart = [];
   saveCart();
   /* Return to shop home — user icon becomes the login trigger */
-  window.location.href = 'shop.html';
+  window.location.href = 'shop.php';
 }
 
 function restoreSession() {
@@ -984,11 +995,22 @@ function sendMessage() {
 function buildOrderSummary() {
   const linesEl = document.getElementById('order-lines');
   if (!linesEl) return;
-  linesEl.innerHTML = cart.map(({product:p}) =>
-    `<div class="order-line"><span>${p.name} (Size ${p.size||'—'})</span><span>₱${p.price.toLocaleString()}</span></div>`
-  ).join('');
+  linesEl.innerHTML = cart.map(({product:p}) => {
+    const img = getCoverImage(p);
+    return `
+      <div class="order-line order-line-product">
+        ${img ? `<img class="order-line-thumb" src="${img}" alt="${p.name}">` : '<div class="order-line-thumb order-line-thumb-placeholder"></div>'}
+        <div class="order-line-info">
+          <span class="order-line-name">${p.name}</span>
+          <span class="order-line-size">Size: ${p.size || '—'}</span>
+        </div>
+        <span class="order-line-price">₱${p.price.toLocaleString()}</span>
+      </div>`;
+  }).join('');
   const totEl = document.getElementById('order-total-display');
   if (totEl) totEl.textContent = '₱' + cartTotal().toLocaleString();
+  const grandEl = document.getElementById('order-grand-total');
+  if (grandEl) grandEl.textContent = '₱' + cartTotal().toLocaleString();
   if (currentUser) {
     const nameEl  = document.getElementById('pf-name');
     const emailEl = document.getElementById('pf-email');
@@ -1011,7 +1033,15 @@ function handleProofUpload(e) {
   reader.readAsDataURL(file);
 }
 
+function toggleConfirmBtn() {
+  const checkbox = document.getElementById('agree-no-refund');
+  const btn      = document.getElementById('btn-confirm-payment');
+  if (btn) btn.disabled = !checkbox?.checked;
+}
+
 async function confirmPayment() {
+  const agreed = document.getElementById('agree-no-refund')?.checked;
+  if (!agreed) { showToast('Please agree to the No Refund Policy before proceeding.'); return; }
   const name  = document.getElementById('pf-name').value.trim();
   const phone = document.getElementById('pf-phone').value.trim();
   const email = document.getElementById('pf-email').value.trim();
@@ -1030,16 +1060,20 @@ async function confirmPayment() {
   if (!currentUser) { showToast('Please log in first.'); openAuth(); return; }
 
   /* Build FormData */
+  const shippingFee  = parseFloat(document.getElementById('pf-shipping-fee')?.value || 0);
+  const grandTotal   = cartTotal() + shippingFee;
+
   const formData = new FormData();
-  formData.append('items',            JSON.stringify(cart.map(({product:p}) => ({ product_id: p.id, price: p.price }))));
-  formData.append('total_amount',     cartTotal());
+  formData.append('items',            JSON.stringify(cart.map(({product:p}) => ({ product_id: p.id, price: p.price, name: p.name || '', image: (p.images && p.images[0]) || '' }))));
+  formData.append('total_amount',     grandTotal);
+  formData.append('shipping_fee',     shippingFee);
   formData.append('payment_method',   'GCash');
   formData.append('reference_number', ref);
   formData.append('address',          address);
   formData.append('phone',            phone);
   formData.append('proof_image',      proof);
 
-  const submitBtn = document.getElementById('btn-submit-payment');
+  const submitBtn = document.getElementById('btn-confirm-payment');
   if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting…'; }
 
   try {
@@ -1107,30 +1141,17 @@ function openOrderHistory(e) {
   _openOrdersPanel('history');
 }
 
-let _ordersRefreshTimer = null;
-
 function _openOrdersPanel(tab) {
   const panel = document.getElementById('orders-panel');
   if (!panel) return;
 
   panel.classList.add('open');
-
-  /* Remove active state from all nav links while panel is open */
-  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
-
+  document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
   switchOrdersTab(tab);
 
   /* Always fetch fresh data when panel opens — never show stale cache */
   _ordersCache  = null;
   _fetchAndRenderOrders();
-
-  /* Auto-refresh every 15 seconds so admin status changes reach the user quickly */
-  clearInterval(_ordersRefreshTimer);
-  _ordersRefreshTimer = setInterval(() => {
-    if (document.getElementById('orders-panel')?.classList.contains('open')) {
-      _fetchAndRenderOrders();
-    }
-  }, 15000);
 }
 
 function closeMyOrdersPanel() {
@@ -1138,20 +1159,16 @@ function closeMyOrdersPanel() {
   if (!panel) return;
   panel.classList.remove('open');
 
-  /* Stop auto-refresh when panel is closed */
-  clearInterval(_ordersRefreshTimer);
-  _ordersRefreshTimer = null;
-
-  /* Restore the active nav link for the current page */
-  const path  = window.location.pathname.split('/').pop();
-  const pages = {
-    'shop.html':               'nav-home',
-    'shop-products.html':      'nav-shop',
-    'shop-reviews.html':       'nav-reviews',
-    'shop-about.html':         'nav-about',
-    'shop-contacts.html':      'nav-contacts',
+  /* Restore active nav link for the current page */
+  const path = window.location.pathname.split('/').pop();
+  const pageNavMap = {
+    'shop.php':          'nav-home',
+    'shop-products.php': 'nav-shop',
+    'shop-reviews.php':  'nav-reviews',
+    'shop-about.php':    'nav-about',
+    'shop-contacts.php': 'nav-contacts',
   };
-  const navId = pages[path];
+  const navId = pageNavMap[path];
   if (navId) {
     const el = document.getElementById(navId);
     if (el) el.classList.add('active');
@@ -1226,7 +1243,7 @@ function _renderOrdersTab(tab, allOrders) {
             ? 'You have no orders currently in progress.'
             : 'Completed and past orders will appear here.'}
         </div>
-        ${isActive ? `<a href="shop-products.html" class="btn-primary" style="display:inline-block;" onclick="closeMyOrdersPanel()">Browse Products</a>` : ''}
+        ${isActive ? `<a href="shop-products.php" class="btn-primary" style="display:inline-block;" onclick="closeMyOrdersPanel()">Browse Products</a>` : ''}
       </div>`;
     return;
   }
@@ -1236,13 +1253,14 @@ function _renderOrdersTab(tab, allOrders) {
   ).join('');
 }
 
+
 async function loadMyOrders() {
   try {
     const res = await shopFetch('api/my-orders.php');
 
     /* Handle auth failure before parsing body */
     if (res.status === 401) {
-      window.location.href = 'shop.html';
+      window.location.href = 'shop.php';
       return [];
     }
 
@@ -1277,7 +1295,7 @@ const ACTIVE_ORDER_STATUSES = [
   'Pending Payment', 'Pending Verification', 'Rejected',
 ];
 /* Order History — only truly finished orders */
-const FINAL_ORDER_STATUSES = ['Completed', 'Cancelled'];
+const FINAL_ORDER_STATUSES = ['Completed'];
 
 /* ── User-facing display label for each backend status ────────── */
 function _orderDisplayLabel(orderStatus) {
@@ -1289,7 +1307,6 @@ function _orderDisplayLabel(orderStatus) {
     'Shipping':             'Shipping',
     'Shipped':              'Shipped',
     'Completed':            'Completed',
-    'Cancelled':            'Cancelled',
     /* legacy */
     'Pending Payment':      'Payment Verification',
     'Pending Verification': 'Payment Verification',
@@ -1309,9 +1326,8 @@ function orderStatusBadgeShop(status) {
     'Shipping':             'shipping',
     'Shipped':              'shipped',
     'Completed':            'completed',
-    'Cancelled':            'cancelled',
   };
-  const cls = clsMap[label] || 'cancelled';
+  const cls = clsMap[label] || 'completed';
   return `<span class="status-badge ${cls}">${label}</span>`;
 }
 
@@ -1404,7 +1420,9 @@ function renderOrderCard(o) {
     bannerHtml = `
       <div class="order-pending-banner">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span>Your payment is under review. We are verifying your GCash screenshot and reference number. Your item is reserved while we check.</span>
+        <div>
+          <span>Your payment is under review. We are verifying your GCash screenshot and reference number. Your item is reserved while we check.</span>
+        </div>
       </div>`;
   } else if (isAccepted) {
     bannerHtml = `
@@ -1426,7 +1444,7 @@ function renderOrderCard(o) {
           <div>Your payment could not be verified. Please check your GCash details and place a new order.</div>
           ${reasonHtml}
           <div style="margin-top:0.5rem;">
-            <a href="shop-products.html" onclick="closeMyOrdersPanel()"
+            <a href="shop-products.php" onclick="closeMyOrdersPanel()"
                style="display:inline-block;background:var(--accent);color:#fff;border-radius:6px;
                       padding:0.35rem 0.9rem;font-size:0.78rem;font-weight:500;text-decoration:none;">
               Browse Products →
@@ -1435,6 +1453,16 @@ function renderOrderCard(o) {
         </div>
       </div>`;
   }
+
+  /* ── Admin note (seller message) ── */
+  const adminNoteHtml = o.adminNotes ? `
+    <div class="order-seller-note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0;color:var(--accent);"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <div>
+        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent);margin-bottom:0.2rem;">Message from Seller</div>
+        <div style="font-size:0.82rem;color:var(--text);line-height:1.55;">${escHtml(o.adminNotes)}</div>
+      </div>
+    </div>` : '';
 
   /* ── Progress tracker — always visible so users know where they are ── */
   const trackerHtml = `
@@ -1455,10 +1483,16 @@ function renderOrderCard(o) {
         </div>
       </div>
       ${bannerHtml ? `<div style="padding:0.9rem 1.4rem 0;">${bannerHtml}</div>` : ''}
+      ${adminNoteHtml ? `<div style="padding:0.75rem 1.4rem 0;">${adminNoteHtml}</div>` : ''}
       <div class="order-items">${itemsHtml}</div>
       ${trackerHtml}
       <div class="order-card-footer">
         <div>
+          ${o.shippingFee > 0 ? `
+          <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:0.15rem;">
+            Items: ₱${(Number(o.totalAmount) - o.shippingFee).toLocaleString()}
+            &nbsp;+&nbsp; Shipping: ₱${Number(o.shippingFee).toLocaleString()}
+          </div>` : ''}
           <div class="order-total-label">Total Paid</div>
           <div class="order-total-amount">₱${Number(o.totalAmount).toLocaleString()}</div>
         </div>
@@ -1516,8 +1550,8 @@ function renderHistoryCard(o) {
       </div>`;
   }).join('');
 
-  const isPaymentInvalid = ['Payment Rejected','Rejected','Cancelled'].includes(o.orderStatus);
-  const displayLabel     = _orderDisplayLabel(o.orderStatus);
+  const isPaymentRejected = ['Payment Rejected','Rejected'].includes(o.orderStatus);
+  const displayLabel      = _orderDisplayLabel(o.orderStatus);
 
   /* ── Banner for each final state ── */
   let bannerHtml = '';
@@ -1529,25 +1563,20 @@ function renderHistoryCard(o) {
           Order completed — tap <strong>★ Write a Review</strong> on any item to share your experience.
         </div>
       </div>`;
-  } else if (isPaymentInvalid) {
-    const reason = o.orderStatus === 'Cancelled'
-      ? 'Your reservation expired before admin review was completed. The item has been released.'
-      : 'Your payment could not be verified. Please check your GCash details and try again.';
+  } else if (isPaymentRejected) {
     bannerHtml = `
       <div style="padding:0.9rem 1.4rem 0;">
         <div class="order-rejected-banner">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
           <div>
             <div style="font-weight:600;margin-bottom:0.25rem;">Payment Invalid</div>
-            <div>${reason}</div>
+            <div>Your payment could not be verified. Please check your GCash details and try again.</div>
           </div>
         </div>
       </div>
-      <!-- Shop Again prompt -->
       <div style="padding:0.75rem 1.4rem 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
         <span style="font-size:0.82rem;color:var(--text-muted);">Want to try again?</span>
-        <a href="shop-products.html"
-           onclick="closeMyOrdersPanel()"
+        <a href="shop-products.php" onclick="closeMyOrdersPanel()"
            style="background:var(--accent);color:#fff;border-radius:8px;padding:0.5rem 1.2rem;
                   font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:500;
                   text-decoration:none;transition:opacity 0.2s;"
@@ -1557,7 +1586,7 @@ function renderHistoryCard(o) {
       </div>`;
   }
 
-  const badgeCls = isCompleted ? 'completed' : isPaymentInvalid ? 'rejected' : 'cancelled';
+  const badgeCls = isCompleted ? 'completed' : isPaymentRejected ? 'rejected' : 'completed';
 
   return `
     <div class="order-card">

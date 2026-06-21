@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+<?php
+session_start();
+include('connection.php');
+?>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -9,7 +13,7 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <link rel="stylesheet" href="shop-styles.css">
 <style>
-  /* ── Contact hero split ── */
+  /* â”€â”€ Contact hero split â”€â”€ */
   .contact-hero { display: grid; grid-template-columns: 1fr 1fr; min-height: 520px; }
   .contact-hero-left { padding: 4rem 3.5rem; background: var(--bg); display: flex; flex-direction: column; justify-content: center; }
   .contact-hero-left h1 { font-family: 'Bebas Neue', sans-serif; font-size: 3.2rem; letter-spacing: 0.1em; margin-bottom: 0.5rem; color: var(--text); }
@@ -17,7 +21,7 @@
   .contact-hero-right { overflow: hidden; background: #ccc9c2; }
   .contact-hero-right img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
 
-  /* ── Contact option cards ── */
+  /* â”€â”€ Contact option cards â”€â”€ */
   .contact-card { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.2rem; background: var(--bg-card); border: 1.5px solid var(--border); border-radius: 14px; text-decoration: none; color: var(--text); transition: border-color .2s, transform .15s, box-shadow .2s; }
   .contact-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.09); color: var(--text); }
   .contact-card-icon { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.3rem; color: #fff; }
@@ -26,12 +30,12 @@
   .contact-card-arrow { margin-left: auto; color: var(--text-light); font-size: 1rem; transition: transform .2s; }
   .contact-card:hover .contact-card-arrow { transform: translate(3px, -3px); color: var(--accent); }
 
-  /* ── Follow Us section ── */
+  /* â”€â”€ Follow Us section â”€â”€ */
   .follow-section { background: var(--bg-card); border-top: 1px solid var(--border); padding: 5rem 2rem; }
   .follow-section .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: .1em; color: var(--text); }
   .follow-section .section-sub { color: var(--text-muted); font-size: 0.88rem; }
 
-  /* ── Social platform cards ── */
+  /* â”€â”€ Social platform cards â”€â”€ */
   .platform-card { border-radius: 20px; overflow: hidden; text-decoration: none; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 2.2rem 1.5rem 1.8rem; gap: 0.9rem; transition: transform .2s, box-shadow .2s; border: none; }
   .platform-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,.18); color: #fff; }
   .platform-card .plat-icon { width: 64px; height: 64px; border-radius: 16px; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; font-size: 2rem; }
@@ -56,7 +60,7 @@
 
 <!-- Nav, cart, auth, toast injected by shop-layout.js -->
 
-<!-- ── HERO SPLIT ───────────────────────────────────────────── -->
+<!-- â”€â”€ HERO SPLIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 <div class="contact-hero">
   <div class="contact-hero-left">
     <h1>Contact Us</h1>
@@ -117,7 +121,7 @@
   </div>
 </div>
 
-<!-- ── FOLLOW US ─────────────────────────────────────────────── -->
+<!-- â”€â”€ FOLLOW US â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 <div class="follow-section">
   <div class="text-center mb-5">
     <div class="section-title">Follow Us</div>
@@ -160,7 +164,7 @@
   </div>
 </div>
 
-<footer><span>© 2025 Carousell. All rights reserved.</span></footer>
+<footer><span>© 2025 Carousell. All rights reserved.</span><span style="margin-left:1.5rem;"><a href="shop-terms.php" style="color:inherit;opacity:0.6;font-size:0.78rem;text-decoration:none;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">Terms &amp; Privacy</a></span></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="shop-shared.js?v=2"></script>
@@ -168,4 +172,3 @@
 <script>initShopLayout('contacts');</script>
 </body>
 </html>
-

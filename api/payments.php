@@ -13,9 +13,21 @@ requireAdmin();
 try {
     $db = getDB();
 
+    /* Check for optional columns */
+    $shippingCol  = '';
+    $itemsJsonCol = '';
+    try {
+        $chk = $db->query("SHOW COLUMNS FROM orders LIKE 'shipping_fee'");
+        if ($chk->rowCount() > 0) $shippingCol = ', o.shipping_fee';
+    } catch (Throwable $e) {}
+    try {
+        $chk = $db->query("SHOW COLUMNS FROM orders LIKE 'items_json'");
+        if ($chk->rowCount() > 0) $itemsJsonCol = ', o.items_json';
+    } catch (Throwable $e) {}
+
     $rows = $db->query(
-        'SELECT o.order_id, o.total_amount, o.status AS order_status,
-                o.date_ordered, o.rejection_reason,
+        "SELECT o.order_id, o.total_amount $shippingCol, o.status AS order_status,
+                o.date_ordered, o.rejection_reason $itemsJsonCol,
                 u.first_name, u.last_name, u.email, u.phone, u.address,
                 py.payment_id, py.payment_method, py.reference_number,
                 py.proof_image, py.status AS payment_status,
@@ -23,7 +35,7 @@ try {
          FROM orders o
          JOIN users u ON u.user_id = o.user_id
          LEFT JOIN payments py ON py.order_id = o.order_id
-         ORDER BY o.date_ordered DESC'
+         ORDER BY o.date_ordered DESC"
     )->fetchAll();
 
     if (empty($rows)) { respond([]); }
@@ -60,6 +72,22 @@ try {
 
     $result = array_map(function($o) use ($itemMap) {
         $oid = (int)$o['order_id'];
+
+        /* Before approval, order_items don't exist yet — fall back to items_json */
+        $products = $itemMap[$oid] ?? [];
+        if (empty($products) && !empty($o['items_json'])) {
+            $raw = json_decode($o['items_json'], true) ?: [];
+            foreach ($raw as $item) {
+                $products[] = [
+                    'productId' => (int)($item['product_id'] ?? 0),
+                    'name'      => $item['name'] ?? ('Product #' . ($item['product_id'] ?? '?')),
+                    'size'      => $item['size'] ?? '—',
+                    'price'     => (float)($item['price'] ?? 0),
+                    'image'     => $item['image'] ?? '',
+                ];
+            }
+        }
+
         return [
             'id'          => $oid,
             'order_id'    => $oid,
@@ -69,8 +97,9 @@ try {
                 'phone'   => $o['phone']   ?? '',
                 'address' => $o['address'] ?? '',
             ],
-            'products'        => $itemMap[$oid] ?? [],
+            'products'        => $products,
             'totalAmount'     => (float)$o['total_amount'],
+            'shippingFee'     => isset($o['shipping_fee']) ? (float)$o['shipping_fee'] : 0,
             'orderStatus'     => $o['order_status'],
             'rejectionReason' => $o['rejection_reason'] ?? null,
             'payment'         => [

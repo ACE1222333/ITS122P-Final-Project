@@ -697,8 +697,9 @@ body.dark .rv-file-label:hover { color: var(--accent); border-color: var(--accen
 .modal-size-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.65rem; }
 .modal-size-label { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
 .modal-size-value { font-size: 0.82rem; font-weight: 600; background: #f0eeea; padding: 0.2rem 0.7rem; border-radius: 5px; }
-.modal-condition-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.65rem; }
+.modal-condition-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.65rem; flex-wrap: wrap; }
 .modal-condition-label { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+.condition-desc { font-size: 0.76rem; color: var(--text-muted); font-style: italic; }
 .modal-desc  { font-size: 0.83rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 1.2rem; font-style: italic; }
 .modal-label { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; }
 .modal-actions { display: flex; gap: 0.75rem; padding-top: 1.2rem; border-top: 1px solid var(--border); margin-top: auto; }
@@ -741,7 +742,7 @@ body.dark .rv-file-label:hover { color: var(--accent); border-color: var(--accen
 
 /* ── PAYMENT PAGE ── */
 .payment-page  { min-height: 100vh; }
-.payment-inner { max-width: 700px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+.payment-inner { max-width: 700px; margin: 0 auto; padding: 3rem 1.5rem 4rem; position: relative; }
 .payment-inner h1 { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; letter-spacing: 0.1em; margin-bottom: 0.4rem; }
 .payment-inner > p { color: var(--text-muted); font-size: 0.86rem; margin-bottom: 2rem; }
 .payment-card  { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 1.8rem; }
@@ -757,6 +758,28 @@ body.dark .rv-file-label:hover { color: var(--accent); border-color: var(--accen
 .order-summary-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 0.08em; margin-bottom: 1rem; }
 .order-line    { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 0.55rem; }
 .order-line.total { font-weight: 600; font-size: 0.95rem; padding-top: 0.6rem; border-top: 1px solid var(--border); margin-top: 0.4rem; }
+
+/* Order summary with thumbnails */
+.order-line-product { align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+.order-line-thumb {
+  width: 36px; height: 36px; object-fit: cover; border-radius: 6px;
+  border: 1px solid var(--border); flex-shrink: 0;
+}
+.order-line-thumb-placeholder {
+  width: 36px; height: 36px; border-radius: 6px;
+  background: var(--bg-section); flex-shrink: 0;
+}
+.order-line-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+.order-line-name { font-size: 0.84rem; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.order-line-size { font-size: 0.74rem; color: var(--text-muted); }
+.order-line-price { font-size: 0.86rem; font-weight: 600; color: var(--text); flex-shrink: 0; }
+
+/* J&T shipping note */
+.order-summary-shipping-note {
+  display: flex; align-items: center; gap: 0.5rem;
+  margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border);
+  font-size: 0.78rem; color: var(--text-muted); line-height: 1.5;
+}
 .proof-upload-zone { border: 2px dashed var(--border); border-radius: 10px; padding: 2rem; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; margin-bottom: 1rem; }
 .proof-upload-zone:hover { border-color: var(--accent); background: var(--bg-section); }
 .proof-upload-zone input { display: none; }
@@ -767,7 +790,24 @@ body.dark .rv-file-label:hover { color: var(--accent); border-color: var(--accen
 .proof-preview img { max-height: 160px; width: auto; margin: 0 auto; border-radius: 8px; object-fit: contain; border: 1px solid var(--border); }
 .pf-label      { display: block; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.35rem; }
 .btn-confirm-payment { width: 100%; background: var(--gcash-blue); color: #fff; border: none; border-radius: 8px; padding: 0.95rem; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500; letter-spacing: 0.06em; cursor: pointer; transition: opacity 0.2s, transform 0.15s; }
-.btn-confirm-payment:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-confirm-payment:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+.btn-confirm-payment:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+.no-refund-notice { background: #fff8f0; border: 1.5px solid #f59e0b; border-radius: 10px; padding: 1.1rem 1.2rem; margin-bottom: 1.2rem; }
+body.dark .no-refund-notice { background: #2a1f0e; border-color: #b45309; }
+.no-refund-title { font-weight: 700; font-size: 0.88rem; color: #b45309; margin-bottom: 0.5rem; letter-spacing: 0.02em; }
+body.dark .no-refund-title { color: #f59e0b; }
+.no-refund-notice p { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; line-height: 1.6; }
+.no-refund-notice p:last-of-type { margin-bottom: 0.85rem; }
+.no-refund-agree { display: flex; align-items: flex-start; gap: 0.6rem; cursor: pointer; }
+.no-refund-agree input[type="checkbox"] { margin-top: 0.18rem; min-width: 15px; height: 15px; accent-color: #b45309; cursor: pointer; }
+.no-refund-agree span { font-size: 0.8rem; font-weight: 500; color: var(--text); line-height: 1.5; }
+
+
+.payment-help-line { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+.payment-help-line span { font-size: 0.78rem; color: var(--text-muted); margin-right: 0.1rem; white-space: nowrap; }
+.payment-help-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.82rem; color: #fff; text-decoration: none; transition: opacity 0.15s, transform 0.15s; flex-shrink: 0; }
+.payment-help-icon:hover { opacity: 0.82; transform: translateY(-2px); }
 .btn-back-shop { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; color: var(--text-muted); cursor: pointer; text-decoration: underline; margin-bottom: 1.6rem; background: none; border: none; font-family: 'DM Sans', sans-serif; }
 .btn-back-shop:hover { color: var(--text); }
 .payment-success { text-align: center; padding: 3rem 1rem; display: none; }
@@ -1167,6 +1207,16 @@ body.dark .rv-file-label:hover { color: var(--accent); border-color: var(--accen
 }
 .btn-view-receipt:hover { background: var(--text-muted); color: #fff; border-color: var(--text-muted); }
 
+.btn-cancel-order {
+  background: none; border: 1.5px solid var(--danger, #e53e3e); border-radius: 6px;
+  padding: 0.28rem 0.75rem; font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em;
+  color: var(--danger, #e53e3e); cursor: pointer; white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-cancel-order:hover { background: var(--danger, #e53e3e); color: #fff; }
+
+
 /* ── RECEIPT MODAL ── */
 .receipt-modal-overlay {
   display: none; position: fixed; inset: 0;
@@ -1427,3 +1477,60 @@ body.admin-preview-mode nav { top: 36px; }
   .promo-strip   { flex-direction:column; }
   .cart-drawer   { width:100vw; }
 }
+
+/* ── Payment assurance note ── */
+.payment-assurance-note {
+  display: flex; gap: 0.85rem; align-items: flex-start;
+  background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.25);
+  border-radius: 12px; padding: 1rem 1.1rem; margin: 1.2rem 0;
+  color: var(--text); font-size: 0.82rem; line-height: 1.65;
+}
+.payment-assurance-note svg { stroke: #16a34a; }
+.payment-assurance-note p { margin: 0 0 0.4rem; color: var(--text-muted); }
+.payment-assurance-note p:last-child { margin-bottom: 0; }
+
+/* ── Seller note in order card ── */
+.order-seller-note {
+  display: flex; align-items: flex-start; gap: 0.6rem;
+  background: rgba(var(--accent-rgb, 26,26,26), 0.05);
+  border: 1px solid var(--accent); border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+body.dark .order-seller-note { background: rgba(255,255,255,0.05); }
+
+
+/* ════════════════════════════════════════════════════════════════
+   FAQ PAGE
+════════════════════════════════════════════════════════════════ */
+.faq-page { max-width: 780px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+.faq-hero { text-align: center; margin-bottom: 3rem; }
+.faq-hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+.faq-hero p  { color: var(--text-muted); font-size: 0.9rem; }
+
+.faq-section-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 0.1em;
+  color: var(--accent); margin: 2.5rem 0 1rem; display: flex; align-items: center; gap: 0.5rem;
+}
+.faq-section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.faq-item { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 0.65rem; overflow: hidden; }
+.faq-question {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.2rem; background: var(--bg-card); border: none; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500; color: var(--text);
+  text-align: left; gap: 1rem; transition: background 0.15s;
+}
+.faq-question:hover { background: var(--bg-section); }
+.faq-question.open  { background: var(--bg-section); color: var(--accent); }
+.faq-chevron {
+  width: 18px; height: 18px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2.5;
+  transition: transform 0.25s;
+}
+.faq-question.open .faq-chevron { transform: rotate(180deg); }
+.faq-answer {
+  display: none; padding: 0 1.2rem 1rem;
+  font-size: 0.84rem; color: var(--text-muted); line-height: 1.75;
+  background: var(--bg-card);
+}
+.faq-answer.open { display: block; }
+.faq-answer a { color: var(--accent); }

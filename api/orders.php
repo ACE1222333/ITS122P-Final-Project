@@ -15,9 +15,21 @@ if ($method === 'GET') {
 
     /* Only orders whose payment has been Approved appear in the fulfillment
        view.  Pending / Rejected payments live on the Payments page instead. */
+    /* Check for optional columns */
+    $notesCol    = '';
+    $shippingCol = '';
+    try {
+        $chk = $db->query("SHOW COLUMNS FROM orders LIKE 'admin_notes'");
+        if ($chk->rowCount() > 0) $notesCol = ', o.admin_notes';
+    } catch (Throwable $e) {}
+    try {
+        $chk = $db->query("SHOW COLUMNS FROM orders LIKE 'shipping_fee'");
+        if ($chk->rowCount() > 0) $shippingCol = ', o.shipping_fee';
+    } catch (Throwable $e) {}
+
     $orders = $db->query(
         "SELECT o.order_id, o.user_id, o.total_amount, o.status AS order_status,
-                o.date_ordered,
+                o.date_ordered $notesCol $shippingCol,
                 u.first_name, u.last_name, u.email, u.phone, u.address,
                 py.payment_id, py.payment_method, py.reference_number,
                 py.proof_image, py.status AS payment_status,
@@ -77,6 +89,8 @@ if ($method === 'GET') {
             ],
             'dateOrdered'           => $o['date_ordered'],
             'reservationExpiresAt'  => $o['reservation_expires_at'] ?? null,
+            'adminNotes'            => $o['admin_notes'] ?? null,
+            'shippingFee'           => isset($o['shipping_fee']) ? (float)$o['shipping_fee'] : 0,
         ];
     }, $orders);
 
@@ -95,6 +109,7 @@ if ($method === 'POST') {
         /* Parse fields from FormData */
         $itemsJson    = $_POST['items']            ?? '[]';
         $totalAmount  = isset($_POST['total_amount'])  ? (float)$_POST['total_amount']  : 0;
+        $shippingFee  = isset($_POST['shipping_fee'])  ? (float)$_POST['shipping_fee']  : 0;
         $payMethod    = trim($_POST['payment_method']  ?? 'GCash');
         $refNumber    = trim($_POST['reference_number'] ?? '');
         $address      = trim($_POST['address']         ?? '');
@@ -121,6 +136,7 @@ if ($method === 'POST') {
         $body        = getJsonBody();
         $items       = $body['items']            ?? [];
         $totalAmount = isset($body['total_amount']) ? (float)$body['total_amount'] : 0;
+        $shippingFee = isset($body['shipping_fee']) ? (float)$body['shipping_fee'] : 0;
         $payMethod   = trim($body['payment_method']   ?? 'GCash');
         $refNumber   = trim($body['reference_number'] ?? '');
         $proofUrl    = trim($body['proof_image']       ?? '');
@@ -134,31 +150,35 @@ if ($method === 'POST') {
     if ($address === '')   respondError('Delivery address is required.');
 
     $db = getDB();
+
+    /* Auto-migrate shipping_fee column */
+    try {
+        $chk = $db->query("SHOW COLUMNS FROM orders LIKE 'shipping_fee'");
+        if ($chk->rowCount() === 0) {
+            $db->exec("ALTER TABLE orders ADD COLUMN shipping_fee DECIMAL(10,2) DEFAULT 0 AFTER total_amount");
+        }
+    } catch (Throwable $e) { /* ignore */ }
+
+    /* Auto-migrate items_json column — stores cart snapshot until payment is approved */
+    try {
+        $chk = $db->query("SHOW COLUMNS FROM orders LIKE 'items_json'");
+        if ($chk->rowCount() === 0) {
+            $db->exec("ALTER TABLE orders ADD COLUMN items_json TEXT NULL AFTER shipping_fee");
+        }
+    } catch (Throwable $e) { /* ignore */ }
+
     $db->beginTransaction();
 
     try {
-        /* Reservation expires in 48 hours — gives admin time to review proof */
-        $reservationExpiry = date('Y-m-d H:i:s', strtotime('+48 hours'));
-
-        /* Insert order — initial status is Payment Verification */
+        /* Insert order — status is Pending Payment until admin approves.
+           Order items are NOT created yet; they are stored as JSON and
+           inserted only when the payment is approved. */
         $ordStmt = $db->prepare(
-            "INSERT INTO orders (user_id, total_amount, status, reservation_expires_at)
-             VALUES (?, ?, 'Payment Verification', ?)"
+            "INSERT INTO orders (user_id, total_amount, shipping_fee, items_json, status)
+             VALUES (?, ?, ?, ?, 'Pending Payment')"
         );
-        $ordStmt->execute([$user['user_id'], $totalAmount, $reservationExpiry]);
+        $ordStmt->execute([$user['user_id'], $totalAmount, $shippingFee, json_encode($items)]);
         $orderId = (int)$db->lastInsertId();
-
-        /* Insert order items + RESERVE products (not sold yet — pending admin verification) */
-        $itmStmt = $db->prepare('INSERT INTO order_items (order_id, product_id, price) VALUES (?, ?, ?)');
-        $rsvStmt = $db->prepare("UPDATE products SET status = 'reserved' WHERE product_id = ? AND status = 'available'");
-
-        foreach ($items as $item) {
-            $pid   = (int)($item['product_id'] ?? 0);
-            $price = (float)($item['price'] ?? 0);
-            if ($pid <= 0) continue;
-            $itmStmt->execute([$orderId, $pid, $price]);
-            $rsvStmt->execute([$pid]);
-        }
 
         /* Insert payment */
         $payStmt = $db->prepare(

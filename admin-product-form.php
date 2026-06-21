@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+<?php
+session_start();
+include('connection.php');
+?>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -15,7 +19,7 @@
 
     <div class="page-header">
       <div class="page-title-row">
-        <a class="back-btn" href="admin-products.html">
+        <a class="back-btn" href="admin-products.php">
           <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
         </a>
         <div class="page-title" id="form-title">Add Product</div>
@@ -24,9 +28,8 @@
 
     <div style="display:grid;grid-template-columns:1fr 260px;gap:1.5rem;align-items:start;">
 
-      <!-- ── LEFT: main form fields ── -->
+      <!-- â”€â”€ LEFT: main form fields â”€â”€ -->
       <div class="form-card">
-        <!-- PHP integration point: POST to api/products/create.php (add) or api/products/update.php (edit) -->
 
         <div class="form-row single">
           <div class="form-group">
@@ -111,11 +114,11 @@
 
         <div class="form-actions">
           <button class="btn-save" id="submit-btn" onclick="submitForm()">Save Product</button>
-          <a class="btn-cancel" href="admin-products.html">Cancel</a>
+          <a class="btn-cancel" href="admin-products.php">Cancel</a>
         </div>
       </div>
 
-      <!-- ── RIGHT: categories panel ── -->
+      <!-- â”€â”€ RIGHT: categories panel â”€â”€ -->
       <div class="form-card" style="padding:1.2rem;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
           <label class="form-label" style="margin-bottom:0;font-size:0.8rem;">Categories</label>
@@ -162,7 +165,7 @@
   </main>
 </div>
 
-<!-- ── Add Category Mini-Modal ── -->
+<!-- â”€â”€ Add Category Mini-Modal â”€â”€ -->
 <div id="add-cat-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,15,15,0.5);backdrop-filter:blur(3px);z-index:850;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:12px;padding:2rem;width:380px;max-width:95vw;box-shadow:0 8px 30px rgba(0,0,0,0.18);">
     <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.08em;margin-bottom:1.2rem;">New Category</div>
@@ -190,14 +193,12 @@
 initAdminLayout('products');
 checkAdminAuth();
 
-/* ── STATE ──────────────────────────────────────────────────────── */
 const editId       = parseInt(new URLSearchParams(window.location.search).get('id'));
 const isEdit       = !isNaN(editId);
-let formImages     = [];   // array of uploaded URL strings
-let formCoverIndex = 0;    // index of the cover image
+let formImages     = [];
+let formCoverIndex = 0;
 let allCategoriesForm = [];
 
-/* ── LOAD CATEGORIES FROM API (dynamic, user-managed) ───────────── */
 async function initSelects(preserveIds) {
   try {
     const res  = await fetch('api/categories.php');
@@ -221,14 +222,41 @@ function _renderCategoryCheckboxes(cats, selectedIds = []) {
   }
   list.innerHTML = cats.map(c => {
     const checked = selectedIds.includes(c.category_id) ? 'checked' : '';
-    return `<label style="display:flex;align-items:center;gap:0.55rem;padding:0.35rem 0.75rem;cursor:pointer;transition:background 0.12s;"
-               onmouseover="this.style.background='var(--bg-section)'" onmouseout="this.style.background=''">
-      <input type="checkbox" value="${c.category_id}" ${checked}
-             onchange="updatePreview()"
-             style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
-      <span>${escHtmlForm(c.name)}</span>
-    </label>`;
+    return `<div style="display:flex;align-items:center;padding:0.1rem 0.5rem 0.1rem 0.75rem;transition:background 0.12s;"
+                 onmouseover="this.style.background='var(--bg-section)'" onmouseout="this.style.background=''">
+      <label style="display:flex;align-items:center;gap:0.55rem;flex:1;cursor:pointer;padding:0.25rem 0;">
+        <input type="checkbox" value="${c.category_id}" ${checked}
+               onchange="updatePreview()"
+               style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
+        <span>${escHtmlForm(c.name)}</span>
+      </label>
+      <button type="button" title="Delete category"
+        onclick="confirmDeleteCategory(${c.category_id}, '${escHtmlForm(c.name)}')"
+        style="background:none;border:none;cursor:pointer;color:var(--text-light);padding:0.2rem 0.3rem;border-radius:5px;flex-shrink:0;transition:color 0.15s,background 0.15s;font-size:0.8rem;"
+        onmouseover="this.style.color='var(--red,#e53e3e)';this.style.background='rgba(239,68,68,0.08)'"
+        onmouseout="this.style.color='var(--text-light)';this.style.background='none'">✕</button>
+    </div>`;
   }).join('');
+}
+
+async function confirmDeleteCategory(id, name) {
+  openConfirm(
+    'Delete Category?',
+    `Delete "${name}"? Products using this category will have it removed.`,
+    async () => {
+      try {
+        const data = await deleteAdminCategory(id);
+        if (data.error) { showToast(data.error); return; }
+        showToast(`"${name}" deleted.`);
+        const current = getCheckedCategoryIds().filter(i => i !== id);
+        await initSelects(current);
+      } catch(e) {
+        showToast('Failed to delete category.');
+        console.error(e);
+      }
+    },
+    'Delete', true
+  );
 }
 
 function getCheckedCategoryIds() {
@@ -236,7 +264,6 @@ function getCheckedCategoryIds() {
     .map(el => parseInt(el.value));
 }
 
-/* ── ADD CATEGORY MINI-MODAL ─────────────────────────────────────── */
 function openAddCategoryModal() {
   document.getElementById('new-cat-name').value  = '';
   document.getElementById('new-cat-desc').value  = '';
@@ -262,11 +289,9 @@ async function saveNewCategory() {
   btn.disabled = true; btn.textContent = 'Creating…';
 
   try {
-    /* PHP integration point: POST api/categories/create.php */
     const data = await createAdminCategory(name, desc);
     if (data.error) { errEl.textContent = data.error; errEl.style.display = 'block'; return; }
 
-    /* Refresh the category list and auto-check the new one */
     const current = getCheckedCategoryIds();
     current.push(data.category.category_id);
     await initSelects(current);
@@ -282,7 +307,6 @@ async function saveNewCategory() {
   }
 }
 
-/* Close modal on overlay click */
 document.getElementById('add-cat-overlay').addEventListener('click', function(e) {
   if (e.target === this) closeAddCategoryModal();
 });
@@ -291,14 +315,12 @@ function escHtmlForm(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-/* ── INIT FORM ─────────────────────────────────────────────────── */
 async function initForm() {
   await initSelects();
   if (isEdit) {
     document.getElementById('form-title').textContent = 'Edit Product';
     document.getElementById('submit-btn').textContent = 'Update Product';
 
-    /* Fetch product from API */
     try {
       const res  = await fetch('api/products.php');
       const list = await res.json();
@@ -306,7 +328,7 @@ async function initForm() {
 
       if (!p) {
         showToast('Product not found.');
-        setTimeout(() => location.href = 'admin-products.html', 1500);
+        setTimeout(() => location.href = 'admin-products.php', 1500);
         return;
       }
 
@@ -317,11 +339,9 @@ async function initForm() {
       document.getElementById('f-condition').value = p.condition || '';
       setToggle('f-featured-track', 'f-featured-label', !!p.featured);
 
-      /* Pre-check categories */
       if (p.category_ids && p.category_ids.length) {
         _renderCategoryCheckboxes(allCategoriesForm, p.category_ids.map(Number));
       }
-      /* Set size by size_id */
       if (p.size_id) {
         document.getElementById('f-size').value = p.size_id;
       }
@@ -335,7 +355,6 @@ async function initForm() {
       document.getElementById('preview-section').style.display = 'block';
       updatePreview();
 
-      /* Live-preview listeners */
       ['f-name','f-price','f-condition','f-desc']
         .forEach(id => document.getElementById(id).addEventListener('input', updatePreview));
       document.getElementById('f-size').addEventListener('change', updatePreview);
@@ -349,7 +368,6 @@ async function initForm() {
 
 initForm();
 
-/* ── IMAGE UPLOAD ────────────────────────────────────────────────── */
 function handleFormDrop(e) {
   e.preventDefault();
   document.getElementById('f-drop').classList.remove('dragover');
@@ -372,7 +390,6 @@ async function uploadFiles(files) {
   for (const file of toUpload) {
     if (file.size > 5 * 1024 * 1024) { showToast(`"${file.name}" is too large (max 5 MB).`); continue; }
 
-    /* Add a loading placeholder */
     const placeholderId = 'placeholder-' + Date.now() + '-' + Math.random().toString(36).slice(2);
     addLoadingPlaceholder(placeholderId);
 
@@ -389,7 +406,7 @@ async function uploadFiles(files) {
 
       if (res.status === 401) {
         showToast('Session expired. Please log in again.');
-        setTimeout(() => location.href = 'admin-login.html', 1500);
+        setTimeout(() => location.href = 'admin-login.php', 1500);
         return;
       }
       if (data.error) { showToast('Upload failed: ' + data.error); continue; }
@@ -419,10 +436,8 @@ function removePlaceholder(id) {
   if (el) el.remove();
 }
 
-/* ── REFRESH IMAGE GRID ─────────────────────────────────────────── */
 function refreshGrid() {
   const grid = document.getElementById('f-img-grid');
-  /* Preserve any loading placeholders */
   const placeholders = Array.from(grid.querySelectorAll('[id^="placeholder-"]'));
   grid.innerHTML = formImages.map((src, i) => {
     const isCover = i === formCoverIndex;
@@ -435,7 +450,6 @@ function refreshGrid() {
           : `<button class="img-thumb-set-cover" onclick="setCover(${i})">Set Cover</button>`}
       </div>`;
   }).join('');
-  /* Re-append any active placeholders */
   placeholders.forEach(p => grid.appendChild(p));
   if (isEdit) updatePreview();
 }
@@ -453,7 +467,6 @@ function setCover(idx) {
   showToast('Cover image updated.');
 }
 
-/* ── FEATURED TOGGLE ─────────────────────────────────────────────── */
 function toggleFeatured() {
   const input = document.getElementById('f-featured');
   const isOn  = input.value === '1';
@@ -461,7 +474,6 @@ function toggleFeatured() {
   setToggle('f-featured-track', 'f-featured-label', !isOn);
 }
 
-/* ── STOREFRONT PREVIEW ─────────────────────────────────────────── */
 function updatePreview() {
   const sizeSel = document.getElementById('f-size');
   const checkedCats = Array.from(document.querySelectorAll('#f-category-list input:checked'))
@@ -495,7 +507,6 @@ function setPreviewMain(src, el) {
   el.classList.add('active');
 }
 
-/* ── SUBMIT ─────────────────────────────────────────────────────── */
 async function submitForm() {
   const name         = document.getElementById('f-name').value.trim();
   const price        = parseFloat(document.getElementById('f-price').value);
@@ -514,13 +525,9 @@ async function submitForm() {
   btn.textContent = 'Saving…';
 
   const payload = {
-    name,
-    desc,
-    price,
-    category_ids,
+    name, desc, price, category_ids,
     size_id: size_id ? parseInt(size_id) : null,
-    condition,
-    featured,
+    condition, featured,
     cover_index: formCoverIndex,
     images:      [...formImages],
   };
@@ -544,7 +551,7 @@ async function submitForm() {
 
     if (data.success) {
       showToast(isEdit ? `"${name}" updated!` : `"${name}" added!`);
-      setTimeout(() => location.href = 'admin-products.html', 900);
+      setTimeout(() => location.href = 'admin-products.php', 900);
     }
   } catch(e) {
     showToast('Failed to save product. Please try again.');
@@ -556,4 +563,3 @@ async function submitForm() {
 </script>
 </body>
 </html>
-

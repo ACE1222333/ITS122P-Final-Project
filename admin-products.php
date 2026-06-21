@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+<?php
+session_start();
+include('connection.php');
+?>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="admin-styles.css">
 <style>
-/* ── Filter bar ── */
+/* â”€â”€ Filter bar â”€â”€ */
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
@@ -43,14 +47,14 @@
 }
 .filter-clear-btn:hover { background: var(--bg-section); color: var(--text); }
 
-/* ── Status badge extras ── */
+/* â”€â”€ Status badge extras â”€â”€ */
 .badge-available { background: #dcfce7; color: #166534; }
 .badge-reserved  { background: #fef3c7; color: #92400e; }
 .badge-sold      { background: #fee2e2; color: #991b1b; }
 
-/* ── Sold row styling ── */
+/* â”€â”€ Sold row styling â”€â”€ */
 tr.row-sold td { opacity: 0.55; }
-tr.row-sold td:first-child { opacity: 1; }  /* keep product name readable */
+tr.row-sold td:first-child { opacity: 1; }
 .sold-actions-note {
   font-size: 0.72rem;
   color: var(--text-muted);
@@ -66,7 +70,7 @@ tr.row-sold td:first-child { opacity: 1; }  /* keep product name readable */
 
     <div class="page-header">
       <div class="page-title">Products</div>
-      <a class="btn-add" href="admin-product-form.html">
+      <a class="btn-add" href="admin-product-form.php">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
@@ -81,7 +85,6 @@ tr.row-sold td:first-child { opacity: 1; }  /* keep product name readable */
     </div>
 
     <div class="filter-bar">
-      <!-- Status filter -->
       <select class="filter-select" id="filter-status" onchange="applyFilters()">
         <option value="">All Statuses</option>
         <option value="available">Available</option>
@@ -89,12 +92,10 @@ tr.row-sold td:first-child { opacity: 1; }  /* keep product name readable */
         <option value="sold">Sold</option>
       </select>
 
-      <!-- Category filter — populated from API -->
       <select class="filter-select" id="filter-category" onchange="applyFilters()">
         <option value="">All Categories</option>
       </select>
 
-      <!-- Size filter -->
       <select class="filter-select" id="filter-size" onchange="applyFilters()">
         <option value="">All Sizes</option>
         <option>XS</option><option>S</option><option>M</option>
@@ -104,7 +105,6 @@ tr.row-sold td:first-child { opacity: 1; }  /* keep product name readable */
 
       <button class="filter-clear-btn" onclick="clearFilters()">Clear Filters</button>
 
-      <!-- Live count -->
       <span id="filter-count" style="font-size:0.78rem;color:var(--text-muted);margin-left:auto;"></span>
     </div>
 
@@ -128,8 +128,6 @@ tr.row-sold td:first-child { opacity: 1; }  /* keep product name readable */
       </table>
     </div>
 
-    <!-- PHP integration point: product list loaded from api/products.php -->
-
   </main>
 </div>
 
@@ -139,7 +137,6 @@ tr.row-sold td:first-child { opacity: 1; }  /* keep product name readable */
 initAdminLayout('products');
 checkAdminAuth();
 
-/* Load products AND categories for the filter dropdown */
 Promise.all([
   fetchProducts(),
   fetch('api/categories.php').then(r => r.json()).catch(() => []),
@@ -155,9 +152,6 @@ Promise.all([
   applyFilters();
 });
 
-/* ════════════════════════════════════════════════════════════════
-   FILTERS
-════════════════════════════════════════════════════════════════ */
 function applyFilters() {
   const q        = document.getElementById('search-input').value.trim().toLowerCase();
   const status   = document.getElementById('filter-status').value;
@@ -191,9 +185,6 @@ function clearFilters() {
   applyFilters();
 }
 
-/* ════════════════════════════════════════════════════════════════
-   TABLE RENDER
-════════════════════════════════════════════════════════════════ */
 function statusBadge(status) {
   const map = {
     available: ['badge-available', 'Available'],
@@ -216,11 +207,10 @@ function renderProductTable(list) {
     const status = p.status || 'available';
     const isSold = status === 'sold';
 
-    /* Sold products: no edit/delete — show a note instead */
     const actionsHtml = isSold
       ? `<span class="sold-actions-note">No actions — item sold</span>`
       : `<div class="actions-cell">
-           <a class="btn-edit" href="admin-product-form.html?id=${p.id}">Edit</a>
+           <a class="btn-edit" href="admin-product-form.php?id=${p.id}">Edit</a>
            <button class="btn-delete" onclick="confirmDeleteProduct(${p.id})">Delete</button>
          </div>`;
 
@@ -246,9 +236,6 @@ function renderProductTable(list) {
   }).join('');
 }
 
-/* ════════════════════════════════════════════════════════════════
-   DELETE
-════════════════════════════════════════════════════════════════ */
 function confirmDeleteProduct(id) {
   const p = products.find(x => x.id === id);
   if (!p) return;
@@ -262,4 +249,3 @@ function confirmDeleteProduct(id) {
 </script>
 </body>
 </html>
-

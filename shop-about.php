@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+<?php
+session_start();
+include('connection.php');
+?>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -13,7 +17,7 @@
 
 <!-- Nav, cart, auth, toast injected by shop-layout.js -->
 
-<!-- ── HERO SPLIT ───────────────────────────────────────────── -->
+<!-- â”€â”€ HERO SPLIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 <div class="row g-0 align-items-stretch" style="min-height:55vh;">
   <div class="col-12 col-md-5 d-flex flex-column justify-content-center" style="background:var(--bg);padding:clamp(2.5rem,5vw,5rem) clamp(1.5rem,4vw,3rem);">
     <div class="text-uppercase mb-3" style="font-size:.68rem;letter-spacing:.14em;color:var(--text-muted);">Our Brand</div>
@@ -28,7 +32,7 @@
   </div>
 </div>
 
-<!-- ── OWNER ────────────────────────────────────────────────── -->
+<!-- â”€â”€ OWNER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 <div style="background:var(--bg-card);border-top:1px solid var(--border);padding:4rem 1rem;">
   <div class="container text-center" style="max-width:700px;">
     <h2 class="mb-4" style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.1em;">About the Owner</h2>
@@ -41,7 +45,7 @@
 </div>
 
 
-<footer><span>© 2025 Carousell. All rights reserved.</span></footer>
+<footer><span>© 2025 Carousell. All rights reserved.</span><span style="margin-left:1.5rem;"><a href="shop-terms.php" style="color:inherit;opacity:0.6;font-size:0.78rem;text-decoration:none;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">Terms &amp; Privacy</a></span></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="shop-shared.js?v=2"></script>
@@ -49,4 +53,3 @@
 <script>initShopLayout('about');</script>
 </body>
 </html>
-

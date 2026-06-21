@@ -20,10 +20,12 @@ $orderId         = isset($body['order_id'])       ? (int)$body['order_id']      
 $orderStatus     = trim($body['order_status']     ?? '');
 $paymentStatus   = trim($body['payment_status']   ?? '');
 $rejectionReason = trim($body['rejection_reason'] ?? '');
+$adminNotes      = isset($body['admin_notes'])    ? $body['admin_notes']            : null;
 
 if ($orderId <= 0) respondError('Valid order_id is required.');
 
 $validOrderStatuses = [
+    'Pending Payment',
     'Payment Verification',
     'Payment Rejected',
     'Processing',
@@ -50,6 +52,15 @@ $legacyOrderMap = [
 if (isset($legacyOrderMap[$orderStatus])) $orderStatus = $legacyOrderMap[$orderStatus];
 
 $db = getDB();
+
+/* Check if admin_notes column exists — add it if not */
+try {
+    $chk = $db->query("SHOW COLUMNS FROM orders LIKE 'admin_notes'");
+    if ($chk->rowCount() === 0) {
+        $db->exec("ALTER TABLE orders ADD COLUMN admin_notes TEXT NULL");
+    }
+} catch (Throwable $e) { /* ignore — column already exists */ }
+
 $db->beginTransaction();
 
 try {
@@ -72,6 +83,27 @@ try {
 
     /* ── Step 2: Product side-effects + receipt generation ── */
     if ($paymentStatus === 'Approved') {
+        /* Create order_items from items_json (payment-request model: items are
+           stored as JSON on the order and only materialised here on approval) */
+        $orderRow = $db->prepare('SELECT items_json FROM orders WHERE order_id = ? LIMIT 1');
+        $orderRow->execute([$orderId]);
+        $orderData = $orderRow->fetch();
+        if ($orderData && !empty($orderData['items_json'])) {
+            $pendingItems = json_decode($orderData['items_json'], true) ?: [];
+            /* Only insert if order_items don't already exist (idempotent) */
+            $cntStmt = $db->prepare('SELECT COUNT(*) FROM order_items WHERE order_id = ?');
+            $cntStmt->execute([$orderId]);
+            $existingCount = (int)$cntStmt->fetchColumn();
+            if ($existingCount === 0) {
+                $itmStmt = $db->prepare('INSERT INTO order_items (order_id, product_id, price) VALUES (?, ?, ?)');
+                foreach ($pendingItems as $item) {
+                    $pid   = (int)($item['product_id'] ?? 0);
+                    $price = (float)($item['price'] ?? 0);
+                    if ($pid > 0) $itmStmt->execute([$orderId, $pid, $price]);
+                }
+            }
+        }
+
         $db->prepare(
             "UPDATE products p
              INNER JOIN order_items oi ON oi.product_id = p.product_id
@@ -113,6 +145,14 @@ try {
             $db->prepare('UPDATE orders SET status = ? WHERE order_id = ?')
                ->execute([$finalOrderStatus, $orderId]);
         }
+    }
+
+    /* ── Save admin notes if provided ── */
+    if ($adminNotes !== null) {
+        try {
+            $db->prepare('UPDATE orders SET admin_notes = ? WHERE order_id = ?')
+               ->execute([$adminNotes === '' ? null : $adminNotes, $orderId]);
+        } catch (Throwable $e) { /* column may not exist yet on first request */ }
     }
 
     $db->commit();

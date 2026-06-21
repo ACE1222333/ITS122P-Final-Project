@@ -22,18 +22,18 @@ function checkAdminAuth() {
   try {
     const sess = localStorage.getItem('carousell_session');
     if (!sess) {
-      window.location.href = 'admin-login.html';
+      window.location.href = 'admin-login.php';
       return;
     }
     const obj = JSON.parse(sess);
     if (!obj.token || obj.role !== 'admin') {
       /* Clear stale session so login page starts fresh */
       localStorage.removeItem('carousell_session');
-      window.location.href = 'admin-login.html';
+      window.location.href = 'admin-login.php';
     }
   } catch(e) {
     localStorage.removeItem('carousell_session');
-    window.location.href = 'admin-login.html';
+    window.location.href = 'admin-login.php';
   }
 }
 
@@ -72,7 +72,7 @@ async function adminFetch(url, options = {}) {
       showToast('Session expired — please sign in again.');
       setTimeout(() => {
         localStorage.removeItem('carousell_session');
-        window.location.href = 'admin-login.html';
+        window.location.href = 'admin-login.php';
       }, 1800);
     }
     throw new Error('Unauthorized');
@@ -169,9 +169,10 @@ async function deleteProduct(productId, onSuccess) {
 }
 
 /* ── ORDER STATUS ────────────────────────────────────────────── */
-async function updateOrderStatus(orderId, orderStatus, paymentStatus, rejectionReason = '') {
+async function updateOrderStatus(orderId, orderStatus, paymentStatus, rejectionReason = '', adminNotes = undefined) {
   const payload = { order_id: orderId, order_status: orderStatus, payment_status: paymentStatus };
   if (rejectionReason) payload.rejection_reason = rejectionReason;
+  if (adminNotes !== undefined) payload.admin_notes = adminNotes;
   const res = await adminFetch('api/orders/update_status.php', {
     method: 'POST',
     body:   JSON.stringify(payload),

@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+<?php
+session_start();
+include('connection.php');
+?>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -21,8 +25,8 @@
 
     <!-- Tab navigation between My Orders and Order History -->
     <div class="orders-tabs">
-      <a class="orders-tab" href="shop-my-orders.html">My Orders</a>
-      <a class="orders-tab active" href="shop-order-history.html">Order History</a>
+      <a class="orders-tab" href="shop-my-orders.php">My Orders</a>
+      <a class="orders-tab active" href="shop-order-history.php">Order History</a>
     </div>
 
     <!-- Order list -->
@@ -36,7 +40,7 @@
   </div>
 </div>
 
-<footer><span>© 2025 Carousell. All rights reserved.</span></footer>
+<footer><span>© 2025 Carousell. All rights reserved.</span><span style="margin-left:1.5rem;"><a href="shop-terms.php" style="color:inherit;opacity:0.6;font-size:0.78rem;text-decoration:none;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">Terms &amp; Privacy</a></span></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="shop-shared.js?v=2"></script>
@@ -47,7 +51,7 @@ initShopLayout('order-history');
 /* Redirect to shop if not logged in */
 if (!currentUser) {
   showToast('Please log in to view your order history.');
-  setTimeout(() => { window.location.href = 'shop.html'; }, 1000);
+  setTimeout(() => { window.location.href = 'shop.php'; }, 1000);
 }
 
 async function renderOrderHistory() {
@@ -64,10 +68,10 @@ async function renderOrderHistory() {
           <div class="orders-empty-icon"></div>
           <div class="orders-empty-title">No Order History Yet</div>
           <div class="orders-empty-sub">
-            Completed, rejected, and cancelled orders will appear here.<br>
-            Active orders can be tracked under <a href="shop-my-orders.html" style="color:var(--accent);">My Orders</a>.
+            Completed and rejected orders will appear here.<br>
+            Active orders can be tracked under <a href="shop-my-orders.php" style="color:var(--accent);">My Orders</a>.
           </div>
-          <a href="shop-products.html" class="btn-primary" style="display:inline-block;">Start Shopping</a>
+          <a href="shop-products.php" class="btn-primary" style="display:inline-block;">Start Shopping</a>
         </div>`;
       return;
     }
@@ -85,10 +89,6 @@ async function renderOrderHistory() {
 }
 
 renderOrderHistory();
-
-/* Auto-refresh every 15 s so status changes appear without a manual reload */
-setInterval(renderOrderHistory, 15000);
 </script>
 </body>
 </html>
-

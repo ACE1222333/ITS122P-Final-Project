@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+<?php
+session_start();
+include('connection.php');
+?>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="admin-styles.css">
 <style>
-/* ── Stat grid ── */
+/* â”€â”€ Stat grid â”€â”€ */
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -62,7 +66,7 @@
 .stat-badge.urgent { background: rgba(239,68,68,0.12); color: var(--red); }
 .stat-badge.info   { background: rgba(59,130,246,0.12); color: var(--blue); }
 
-/* ── Section label ── */
+/* â”€â”€ Section label â”€â”€ */
 .dash-section-label {
   font-size: 0.68rem;
   font-weight: 700;
@@ -81,7 +85,7 @@
   background: var(--border);
 }
 
-/* ── Pending orders mini-table ── */
+/* â”€â”€ Pending orders mini-table â”€â”€ */
 .pending-table-wrap {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -138,7 +142,7 @@
 }
 .btn-review-go:hover { opacity: 0.82; }
 
-/* ── Loading skeleton ── */
+/* â”€â”€ Loading skeleton â”€â”€ */
 .stat-value.loading {
   background: var(--bg-section);
   color: transparent;
@@ -162,7 +166,7 @@
       <div style="font-size:0.78rem;color:var(--text-muted);" id="dash-updated"></div>
     </div>
 
-    <!-- ① PRODUCTS ───────────────────────────────────────────── -->
+    <!-- ① PRODUCTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <div class="dash-section-label">Products</div>
     <div class="stat-grid">
       <div class="stat-card accent-dark">
@@ -187,7 +191,7 @@
       </div>
     </div>
 
-    <!-- ② ORDERS ─────────────────────────────────────────────── -->
+    <!-- ② ORDERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <div class="dash-section-label">Orders</div>
     <div class="stat-grid">
       <div class="stat-card accent-dark">
@@ -213,7 +217,7 @@
       </div>
     </div>
 
-    <!-- ③ REVENUE & REVIEWS ──────────────────────────────────── -->
+    <!-- ③ REVENUE & REVIEWS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <div class="dash-section-label">Revenue &amp; Reviews</div>
     <div class="stat-grid three">
       <div class="stat-card accent-green">
@@ -233,7 +237,7 @@
       </div>
     </div>
 
-    <!-- ④ PENDING VERIFICATION QUEUE ────────────────────────── -->
+    <!-- ④ PENDING VERIFICATION QUEUE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <div class="dash-section-label" id="pending-section-label">
       Pending Verification Queue
     </div>
@@ -260,7 +264,7 @@
 initAdminLayout('dashboard');
 checkAdminAuth();
 
-/* ── Helpers ── */
+/* â”€â”€ Helpers â”€â”€ */
 const peso = v => '₱' + Number(v).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 const num  = v => Number(v).toLocaleString();
 const set  = (id, val) => {
@@ -270,7 +274,7 @@ const set  = (id, val) => {
   el.classList.remove('loading');
 };
 
-/* ── Load dashboard stats ── */
+/* â”€â”€ Load dashboard stats â”€â”€ */
 async function loadDashboard() {
   try {
     const res  = await adminFetch('api/dashboard.php');
@@ -318,7 +322,7 @@ async function loadDashboard() {
   }
 }
 
-/* ── Pending orders table ── */
+/* â”€â”€ Pending orders table â”€â”€ */
 function renderPendingList(list, totalPending) {
   const label = document.getElementById('pending-section-label');
   if (label) {
@@ -327,7 +331,6 @@ function renderPendingList(list, totalPending) {
                    padding:0.18rem 0.6rem;border-radius:20px;letter-spacing:0.04em;">
         ${totalPending} order${totalPending !== 1 ? 's' : ''}
       </span>`;
-    /* keep the rule line */
     label.insertAdjacentHTML('beforeend',
       `<span style="flex:1;height:1px;background:var(--border);display:block;margin-left:0.5rem;"></span>`);
   }
@@ -349,7 +352,7 @@ function renderPendingList(list, totalPending) {
       <span style="font-weight:600;">₱${Number(o.amount).toLocaleString()}</span>
       <span style="color:var(--text-muted);">${o.date}</span>
       <span>
-        <a class="btn-review-go" href="admin-payments.html">Review →</a>
+        <a class="btn-review-go" href="admin-payments.php">Review →</a>
       </span>
     </div>`).join('');
 }
@@ -363,4 +366,3 @@ setTimeout(loadDashboard, 100);
 </script>
 </body>
 </html>
-

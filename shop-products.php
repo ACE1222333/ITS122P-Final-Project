@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+<?php
+session_start();
+include('connection.php');
+?>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -72,7 +76,7 @@
   </main>
 </div>
 
-<footer><span>© 2025 Carousell. All rights reserved.</span></footer>
+<footer><span>© 2025 Carousell. All rights reserved.</span><span style="margin-left:1.5rem;"><a href="shop-terms.php" style="color:inherit;opacity:0.6;font-size:0.78rem;text-decoration:none;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">Terms &amp; Privacy</a></span></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="shop-shared.js?v=2"></script>
@@ -80,7 +84,7 @@
 <script>
 initShopLayout('shop');
 
-/* ── RENDER ──────────────────────────────────────────────────────── */
+/* â”€â”€ RENDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function renderProducts(list) {
   const grid = document.getElementById('product-grid');
   grid.innerHTML = '';
@@ -117,7 +121,7 @@ function renderProducts(list) {
   });
 }
 
-/* ── FILTER RENDERERS ────────────────────────────────────────────── */
+/* â”€â”€ FILTER RENDERERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function getCheckedConditions() { return Array.from(document.querySelectorAll('#condition-filters input:checked')).map(el=>el.dataset.condition); }
 
 function renderCategoryFilters() {
@@ -139,7 +143,7 @@ function renderCategoryFilters() {
   }
 }
 
-/* ── FILTERING ───────────────────────────────────────────────────── */
+/* â”€â”€ FILTERING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function getCheckedCategories() { return Array.from(document.querySelectorAll('#category-filters input:checked')).map(el=>el.dataset.category.toLowerCase()); }
 
 function applyFiltersAndSort() {
@@ -169,10 +173,9 @@ function clearConditionFilter() { document.querySelectorAll('#condition-filters 
 function clearCategoryFilter()  { document.querySelectorAll('#category-filters input').forEach(el=>el.checked=false); applyFiltersAndSort(); }
 function clearPriceFilter()     { ['p1','p2','p3','p4'].forEach(id=>document.getElementById(id).checked=false); applyFiltersAndSort(); }
 
-/* ── INIT ────────────────────────────────────────────────────────── */
+/* â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 loadCategories(renderCategoryFilters);
 loadProducts(renderProducts);
 </script>
 </body>
 </html>
-

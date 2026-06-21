@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+<?php
+session_start();
+include('connection.php');
+?>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -115,11 +119,11 @@ input::placeholder { color: #bbb; }
          autocomplete="email" onkeydown="if(event.key==='Enter')login()">
 
   <label for="pass">Password</label>
-  <input type="password" id="pass" placeholder="••••••••"
+  <input type="password" id="pass" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
          autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
 
   <button class="btn" id="btn" onclick="login()">Sign In</button>
-  <a class="back" href="shop.html">← Back to Shop</a>
+  <a class="back" href="shop.php">← Back to Shop</a>
 </div>
 
 <script>
@@ -128,7 +132,7 @@ input::placeholder { color: #bbb; }
   try {
     const sess = JSON.parse(localStorage.getItem('carousell_session') || 'null');
     if (sess && sess.token && sess.role === 'admin') {
-      window.location.replace('admin.html');
+      window.location.replace('admin.php');
     }
   } catch(e) {}
 })();
@@ -174,7 +178,7 @@ async function login() {
 
     /* ✓ Admin authenticated — store session and go to dashboard */
     localStorage.setItem('carousell_session', JSON.stringify(data.user));
-    window.location.href = 'admin.html';
+    window.location.href = 'admin.php';
 
   } catch(e) {
     showError('Network error. Make sure you are accessing via http://localhost/ (not Live Server).');
@@ -186,4 +190,3 @@ async function login() {
 </script>
 </body>
 </html>
-

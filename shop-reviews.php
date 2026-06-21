@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+<?php
+session_start();
+include('connection.php');
+?>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -64,12 +68,11 @@
       <textarea class="rf-textarea" id="rv-body" placeholder="Share your experience with this piece…"></textarea>
 
       <button class="btn-submit-review" onclick="submitReview()">Post Review</button>
-      <!-- PHP integration point: POST api/reviews.php { user_id, product_id, rating, comment, date_reviewed } -->
     </div>
   </div>
 </div>
 
-<footer><span>© 2025 Carousell. All rights reserved.</span></footer>
+<footer><span>© 2025 Carousell. All rights reserved.</span><span style="margin-left:1.5rem;"><a href="shop-terms.php" style="color:inherit;opacity:0.6;font-size:0.78rem;text-decoration:none;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">Terms &amp; Privacy</a></span></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="shop-shared.js?v=2"></script>
@@ -81,4 +84,3 @@ loadReviews(renderReviews);
 </script>
 </body>
 </html>
-

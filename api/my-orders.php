@@ -14,6 +14,7 @@ try {
     /* ── Check optional columns added by migrations ── */
     $expiryCol    = '';
     $rejectionCol = '';
+    $notesCol     = '';
     try {
         $chk = $db->query("SHOW COLUMNS FROM orders LIKE 'reservation_expires_at'");
         if ($chk->rowCount() > 0) $expiryCol = ', o.reservation_expires_at';
@@ -22,11 +23,25 @@ try {
         $chk = $db->query("SHOW COLUMNS FROM orders LIKE 'rejection_reason'");
         if ($chk->rowCount() > 0) $rejectionCol = ', o.rejection_reason';
     } catch (Throwable $e) { /* skip */ }
+    try {
+        $chk = $db->query("SHOW COLUMNS FROM orders LIKE 'admin_notes'");
+        if ($chk->rowCount() > 0) $notesCol = ', o.admin_notes';
+    } catch (Throwable $e) { /* skip */ }
+    try {
+        $chk = $db->query("SHOW COLUMNS FROM orders LIKE 'shipping_fee'");
+        if ($chk->rowCount() > 0) $notesCol .= ', o.shipping_fee';
+    } catch (Throwable $e) { /* skip */ }
 
     /* ── Fetch all orders for this user ──────────────────────────────────── */
+    $itemsJsonCol = '';
+    try {
+        $chk = $db->query("SHOW COLUMNS FROM orders LIKE 'items_json'");
+        if ($chk->rowCount() > 0) $itemsJsonCol = ', o.items_json';
+    } catch (Throwable $e) { /* skip */ }
+
     $stmt = $db->prepare(
         "SELECT o.order_id, o.total_amount, o.status AS order_status,
-                o.date_ordered $expiryCol $rejectionCol,
+                o.date_ordered $itemsJsonCol $expiryCol $rejectionCol $notesCol,
                 py.payment_method, py.reference_number,
                 py.status AS payment_status, py.proof_image, py.date_paid,
                 r.receipt_number, r.generated_at AS receipt_generated_at
@@ -96,14 +111,33 @@ try {
 
     /* ── Build response ───────────────────────────────────────────────────── */
     $result = array_map(function($o) use ($itemMap) {
+        $oid = (int)$o['order_id'];
+
+        /* Before approval, order_items don't exist yet — fall back to items_json */
+        $products = $itemMap[$oid] ?? [];
+        if (empty($products) && !empty($o['items_json'])) {
+            $raw = json_decode($o['items_json'], true) ?: [];
+            foreach ($raw as $item) {
+                $products[] = [
+                    'product_id' => (int)($item['product_id'] ?? 0),
+                    'name'       => $item['name'] ?? ('Product #' . ($item['product_id'] ?? '?')),
+                    'size'       => $item['size'] ?? '—',
+                    'price'      => (float)($item['price'] ?? 0),
+                    'image'      => $item['image'] ?? '',
+                ];
+            }
+        }
+
         return [
-            'id'                   => (int)$o['order_id'],
+            'id'                   => $oid,
             'orderStatus'          => $o['order_status'],
             'dateOrdered'          => $o['date_ordered'],
             'totalAmount'          => (float)$o['total_amount'],
             'reservationExpiresAt' => $o['reservation_expires_at'] ?? null,
             'rejectionReason'      => $o['rejection_reason'] ?? null,
-            'products'             => $itemMap[$o['order_id']] ?? [],
+            'adminNotes'           => $o['admin_notes'] ?? null,
+            'shippingFee'          => isset($o['shipping_fee']) ? (float)$o['shipping_fee'] : 0,
+            'products'             => $products,
             'payment' => [
                 'method'          => $o['payment_method'] ?? 'GCash',
                 'referenceNumber' => $o['reference_number'] ?? '',

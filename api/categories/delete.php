@@ -23,12 +23,12 @@ try {
     if (!$cat) respondError('Category not found.', 404);
 
     /* Count how many products will be affected */
-    $cntStmt = $db->prepare('SELECT COUNT(*) FROM products WHERE category_id = ?');
+    $cntStmt = $db->prepare('SELECT COUNT(*) FROM product_categories WHERE category_id = ?');
     $cntStmt->execute([$id]);
     $affected = (int) $cntStmt->fetchColumn();
 
-    /* Detach products from this category (set to NULL rather than deleting them) */
-    $db->prepare('UPDATE products SET category_id = NULL WHERE category_id = ?')->execute([$id]);
+    /* Remove category from all products (junction table) */
+    $db->prepare('DELETE FROM product_categories WHERE category_id = ?')->execute([$id]);
 
     /* Delete the category */
     $db->prepare('DELETE FROM categories WHERE category_id = ?')->execute([$id]);

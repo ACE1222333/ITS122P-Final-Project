@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+<?php
+session_start();
+include('connection.php');
+?>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -21,8 +25,8 @@
 
     <!-- Tab navigation between My Orders and Order History -->
     <div class="orders-tabs">
-      <a class="orders-tab active" href="shop-my-orders.html">My Orders</a>
-      <a class="orders-tab" href="shop-order-history.html">Order History</a>
+      <a class="orders-tab active" href="shop-my-orders.php">My Orders</a>
+      <a class="orders-tab" href="shop-order-history.php">Order History</a>
     </div>
 
     <!-- Order list -->
@@ -36,7 +40,7 @@
   </div>
 </div>
 
-<footer><span>© 2025 Carousell. All rights reserved.</span></footer>
+<footer><span>© 2025 Carousell. All rights reserved.</span><span style="margin-left:1.5rem;"><a href="shop-terms.php" style="color:inherit;opacity:0.6;font-size:0.78rem;text-decoration:none;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">Terms &amp; Privacy</a></span></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="shop-shared.js?v=2"></script>
@@ -47,7 +51,7 @@ initShopLayout('my-orders');
 /* Redirect to shop if not logged in */
 if (!currentUser) {
   showToast('Please log in to view your orders.');
-  setTimeout(() => { window.location.href = 'shop.html'; }, 1000);
+  setTimeout(() => { window.location.href = 'shop.php'; }, 1000);
 }
 
 async function renderActiveOrders() {
@@ -67,7 +71,7 @@ async function renderActiveOrders() {
             You have no orders currently in progress.<br>
             Completed and past orders can be found in Order History.
           </div>
-          <a href="shop-products.html" class="btn-primary" style="display:inline-block;">Browse Products</a>
+          <a href="shop-products.php" class="btn-primary" style="display:inline-block;">Browse Products</a>
         </div>`;
       return;
     }
@@ -85,10 +89,6 @@ async function renderActiveOrders() {
 }
 
 renderActiveOrders();
-
-/* Auto-refresh every 15 s so admin status changes reach the user without a manual reload */
-setInterval(renderActiveOrders, 15000);
 </script>
 </body>
 </html>
-

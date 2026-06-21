@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+<?php
+session_start();
+include('connection.php');
+?>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -37,7 +41,7 @@
 <div class="section" style="padding-bottom:1.5rem;">
   <div class="section-header">
     <div class="section-title">Shop by Category</div>
-    <a class="section-link" href="shop-products.html">Browse all →</a>
+    <a class="section-link" href="shop-products.php">Browse all →</a>
   </div>
   <div class="cat-pills" id="cat-pills">
     <div class="loading-state" style="font-size:0.82rem;padding:0.5rem 0;">Loading…</div>
@@ -48,7 +52,7 @@
 <div class="section">
   <div class="section-header">
     <div class="section-title">Featured Pieces</div>
-    <a class="section-link" href="shop-products.html">View all →</a>
+    <a class="section-link" href="shop-products.php">View all →</a>
   </div>
   <div class="featured-carousel" id="featured-carousel">
     <button class="feat-arrow feat-arrow-left"  id="feat-prev" onclick="featSlide(-1)" aria-label="Previous">&#8249;</button>
@@ -63,7 +67,7 @@
 <div class="section" style="padding-top:1rem;">
   <div class="section-header">
     <div class="section-title">New Arrivals</div>
-    <a class="section-link" href="shop-products.html">See all →</a>
+    <a class="section-link" href="shop-products.php">See all →</a>
   </div>
   <div class="featured-grid" id="arrivals-grid">
     <div class="loading-state">Loading…</div>
@@ -107,7 +111,7 @@
 <div class="section">
   <div class="section-header">
     <div class="section-title">What Customers Say</div>
-    <a class="section-link" href="shop-reviews.html">All reviews →</a>
+    <a class="section-link" href="shop-reviews.php">All reviews →</a>
   </div>
   <div class="reviews-strip" id="reviews-strip">
     <div class="loading-state">Loading reviews…</div>
@@ -121,7 +125,7 @@
   <button class="btn-outline" onclick="goPage('about')">Our Story</button>
 </div>
 
-<footer><span>© 2025 Carousell. All rights reserved.</span></footer>
+<footer><span>© 2025 Carousell. All rights reserved.</span><span style="margin-left:1.5rem;"><a href="shop-terms.php" style="color:inherit;opacity:0.6;font-size:0.78rem;text-decoration:none;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">Terms &amp; Privacy</a></span></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="shop-shared.js?v=2"></script>
@@ -235,7 +239,7 @@ async function buildCategoryPills() {
       return;
     }
     container.innerHTML = cats.map(c => `
-      <a class="cat-pill" href="shop-products.html?cat=${encodeURIComponent(c.name)}">
+      <a class="cat-pill" href="shop-products.php?cat=${encodeURIComponent(c.name)}">
         ${escHtml(c.name)}
       </a>`).join('');
   } catch(e) {
@@ -310,4 +314,3 @@ buildRatingStat();
 </script>
 </body>
 </html>
-

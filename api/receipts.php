@@ -14,9 +14,16 @@ if ($orderId <= 0) respondError('Valid order_id is required.');
 try {
     $db = getDB();
 
+    /* Check for optional shipping_fee column */
+    $shippingCol = '';
+    try {
+        $chk = $db->query("SHOW COLUMNS FROM orders LIKE 'shipping_fee'");
+        if ($chk->rowCount() > 0) $shippingCol = ', o.shipping_fee';
+    } catch (Throwable $e) {}
+
     /* Verify the order belongs to this user and fetch core data */
     $stmt = $db->prepare(
-        "SELECT o.order_id, o.total_amount, o.status AS order_status,
+        "SELECT o.order_id, o.total_amount $shippingCol, o.status AS order_status,
                 o.date_ordered, u.address,
                 py.payment_method, py.reference_number,
                 py.status AS payment_status, py.date_paid, py.amount AS payment_amount,
@@ -46,9 +53,11 @@ try {
     $itemStmt->execute([$orderId]);
     $items = $itemStmt->fetchAll();
 
-    /* Shipping fee: total_amount minus sum of item prices */
+    /* Shipping fee: read from column if available, else derive from total - items */
     $itemsSubtotal = array_sum(array_column($items, 'price'));
-    $shippingFee   = round((float)$order['total_amount'] - $itemsSubtotal, 2);
+    $shippingFee   = isset($order['shipping_fee'])
+        ? (float)$order['shipping_fee']
+        : round((float)$order['total_amount'] - $itemsSubtotal, 2);
 
     respond([
         'receiptNumber'  => $order['receipt_number'],

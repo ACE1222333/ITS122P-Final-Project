@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+<?php
+session_start();
+include('connection.php');
+?>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -7,192 +11,65 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="admin-styles.css">
 <style>
-/* ── PAGE HEADER ── */
-.page-header {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  flex-wrap: wrap; gap: 1rem; margin-bottom: 1.8rem;
-}
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.8rem; }
 .page-title    { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.08em; line-height: 1; }
 .page-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; }
-
-/* ── STAT STRIP ── */
-.rev-stats {
-  display: flex; gap: 1rem; margin-bottom: 1.6rem; flex-wrap: wrap;
-}
-.rev-stat {
-  background: #fff; border: 1px solid var(--border); border-radius: 10px;
-  padding: 1rem 1.4rem; min-width: 120px; flex: 1;
-}
+.rev-stats { display: flex; gap: 1rem; margin-bottom: 1.6rem; flex-wrap: wrap; }
+.rev-stat { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.4rem; min-width: 120px; flex: 1; }
 .rev-stat-num   { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.06em; line-height: 1; }
 .rev-stat-label { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; margin-top: 0.2rem; }
-
-/* ── FILTERS ── */
-.rev-filters {
-  background: #fff; border: 1px solid var(--border); border-radius: 12px;
-  padding: 1rem 1.2rem; margin-bottom: 1.4rem;
-  display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap;
-}
+.rev-filters { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 1.4rem; display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; }
 .rev-filter-group { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 140px; }
 .rev-filter-label { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
-.rev-filter-select, .rev-filter-input {
-  border: 1px solid var(--border); border-radius: 7px; padding: 0.48rem 0.75rem;
-  font-family: 'DM Sans', sans-serif; font-size: 0.83rem; color: var(--text);
-  background: var(--bg); outline: none; transition: border-color 0.15s;
-}
+.rev-filter-select, .rev-filter-input { border: 1px solid var(--border); border-radius: 7px; padding: 0.48rem 0.75rem; font-family: 'DM Sans', sans-serif; font-size: 0.83rem; color: var(--text); background: var(--bg); outline: none; transition: border-color 0.15s; }
 .rev-filter-select:focus, .rev-filter-input:focus { border-color: var(--accent); }
-.btn-filter-clear {
-  background: none; border: 1px solid var(--border); border-radius: 7px;
-  padding: 0.48rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.83rem;
-  color: var(--text-muted); cursor: pointer; transition: all 0.15s; white-space: nowrap;
-  align-self: flex-end;
-}
+.btn-filter-clear { background: none; border: 1px solid var(--border); border-radius: 7px; padding: 0.48rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.83rem; color: var(--text-muted); cursor: pointer; transition: all 0.15s; white-space: nowrap; align-self: flex-end; }
 .btn-filter-clear:hover { border-color: var(--accent); color: var(--accent); }
-
-/* ── REVIEW CARD ── */
 .rev-list { display: flex; flex-direction: column; gap: 1rem; }
-.rev-card {
-  background: #fff; border: 1px solid var(--border); border-radius: 12px;
-  overflow: hidden; transition: box-shadow 0.15s;
-}
+.rev-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: box-shadow 0.15s; }
 .rev-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,0.08); }
-
-.rev-card-top {
-  padding: 1.2rem 1.4rem 1rem; display: flex; gap: 1rem; align-items: flex-start;
-}
-.rev-avatar {
-  width: 38px; height: 38px; border-radius: 50%; background: var(--accent);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Bebas Neue', sans-serif; font-size: 1rem; color: #fff;
-  letter-spacing: 0.06em; flex-shrink: 0;
-}
-.rev-meta        { flex: 1; min-width: 0; }
-.rev-meta-name   { font-weight: 600; font-size: 0.9rem; }
-.rev-meta-sub    { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
-.rev-meta-date   { }
-.rev-meta-product { color: var(--accent); font-weight: 500; }
-.rev-stars       { color: #f59e0b; font-size: 1rem; letter-spacing: 0.05em; }
+.rev-card-top { padding: 1.2rem 1.4rem 1rem; display: flex; gap: 1rem; align-items: flex-start; }
+.rev-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 1rem; color: #fff; letter-spacing: 0.06em; flex-shrink: 0; }
+.rev-meta { flex: 1; min-width: 0; }
+.rev-meta-name { font-weight: 600; font-size: 0.9rem; }
+.rev-meta-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+.rev-stars { color: #f59e0b; font-size: 1rem; letter-spacing: 0.05em; }
 .rev-stars .empty { color: #ddd; }
-
-.rev-body        { padding: 0 1.4rem 1.2rem; font-size: 0.85rem; line-height: 1.65; color: var(--text); }
-
-/* ── REPLY BLOCK ── */
-.rev-reply-block {
-  margin: 0 1.4rem 1.2rem;
-  background: #f7f5ff; border: 1px solid #d8d0f8;
-  border-left: 3px solid var(--accent); border-radius: 8px;
-  padding: 0.9rem 1rem;
-}
-.rev-reply-label {
-  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--accent); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.35rem;
-}
+.rev-body { padding: 0 1.4rem 1.2rem; font-size: 0.85rem; line-height: 1.65; color: var(--text); }
+.rev-reply-block { margin: 0 1.4rem 1.2rem; background: #f7f5ff; border: 1px solid #d8d0f8; border-left: 3px solid var(--accent); border-radius: 8px; padding: 0.9rem 1rem; }
+.rev-reply-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.35rem; }
 .rev-reply-label svg { width: 12px; height: 12px; stroke: var(--accent); fill: none; stroke-width: 2.5; flex-shrink: 0; }
-.rev-reply-text  { font-size: 0.83rem; line-height: 1.6; color: #333; }
-.rev-reply-date  { font-size: 0.7rem; color: #999; margin-top: 0.3rem; }
-
-/* ── REPLY TRIGGER FOOTER ── */
-.rev-card-footer {
-  border-top: 1px solid var(--border);
-  padding: 0.75rem 1.4rem;
-  background: #fafafa;
-  display: flex; gap: 0.6rem; align-items: center;
-}
-.btn-open-reply {
-  background: var(--accent); color: #fff; border: none; border-radius: 7px;
-  padding: 0.45rem 1.1rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
-  font-weight: 600; cursor: pointer; transition: opacity 0.15s;
-  display: inline-flex; align-items: center; gap: 0.35rem;
-}
+.rev-reply-text { font-size: 0.83rem; line-height: 1.6; color: #333; }
+.rev-reply-date { font-size: 0.7rem; color: #999; margin-top: 0.3rem; }
+.rev-card-footer { border-top: 1px solid var(--border); padding: 0.75rem 1.4rem; background: #fafafa; display: flex; gap: 0.6rem; align-items: center; }
+.btn-open-reply { background: var(--accent); color: #fff; border: none; border-radius: 7px; padding: 0.45rem 1.1rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s; display: inline-flex; align-items: center; gap: 0.35rem; }
 .btn-open-reply:hover { opacity: 0.88; }
-.btn-remove-reply {
-  background: none; border: 1px solid #fca5a5; border-radius: 7px;
-  padding: 0.45rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
-  color: #e53e3e; cursor: pointer; transition: all 0.15s;
-}
+.btn-remove-reply { background: none; border: 1px solid #fca5a5; border-radius: 7px; padding: 0.45rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; color: #e53e3e; cursor: pointer; transition: all 0.15s; }
 .btn-remove-reply:hover { background: #fef2f2; }
-
-/* ── REPLY FORM (hidden by default) ── */
-.rev-reply-form  {
-  border-top: 1px solid var(--border);
-  padding: 1rem 1.4rem;
-  background: #fafafa;
-  display: none; flex-direction: column; gap: 0.6rem;
-}
+.rev-reply-form { border-top: 1px solid var(--border); padding: 1rem 1.4rem; background: #fafafa; display: none; flex-direction: column; gap: 0.6rem; }
 .rev-reply-form.open { display: flex; }
-.rev-reply-form-label {
-  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--text-muted);
-}
-.rev-reply-textarea {
-  border: 1px solid var(--border); border-radius: 8px; padding: 0.65rem 0.85rem;
-  font-family: 'DM Sans', sans-serif; font-size: 0.83rem; color: var(--text);
-  resize: vertical; min-height: 72px; outline: none; background: #fff;
-  transition: border-color 0.15s;
-}
+.rev-reply-form-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+.rev-reply-textarea { border: 1px solid var(--border); border-radius: 8px; padding: 0.65rem 0.85rem; font-family: 'DM Sans', sans-serif; font-size: 0.83rem; color: var(--text); resize: vertical; min-height: 72px; outline: none; background: #fff; transition: border-color 0.15s; }
 .rev-reply-textarea:focus { border-color: var(--accent); }
 .rev-reply-actions { display: flex; gap: 0.6rem; }
-.btn-save-reply {
-  background: var(--accent); color: #fff; border: none; border-radius: 7px;
-  padding: 0.5rem 1.2rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
-  font-weight: 600; cursor: pointer; transition: opacity 0.15s;
-}
+.btn-save-reply { background: var(--accent); color: #fff; border: none; border-radius: 7px; padding: 0.5rem 1.2rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
 .btn-save-reply:hover { opacity: 0.88; }
 .btn-save-reply:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-cancel-reply-form {
-  background: none; border: 1px solid var(--border); border-radius: 7px;
-  padding: 0.5rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
-  color: var(--text-muted); cursor: pointer; transition: all 0.15s;
-}
+.btn-cancel-reply-form { background: none; border: 1px solid var(--border); border-radius: 7px; padding: 0.5rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
 .btn-cancel-reply-form:hover { border-color: var(--accent); color: var(--accent); }
-
-/* ── DELETE REVIEW ── */
-.btn-delete-review {
-  margin-left: auto; background: none; border: 1px solid #fca5a5;
-  border-radius: 7px; padding: 0.3rem 0.75rem;
-  font-family: 'DM Sans', sans-serif; font-size: 0.76rem; font-weight: 500;
-  color: #e53e3e; cursor: pointer; display: inline-flex; align-items: center;
-  gap: 0.3rem; transition: background 0.15s, color 0.15s;
-}
+.btn-delete-review { margin-left: auto; background: none; border: 1px solid #fca5a5; border-radius: 7px; padding: 0.3rem 0.75rem; font-family: 'DM Sans', sans-serif; font-size: 0.76rem; font-weight: 500; color: #e53e3e; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; transition: background 0.15s, color 0.15s; }
 .btn-delete-review:hover { background: #fef2f2; }
-
-/* ── REVIEW IMAGES ── */
 .rev-images { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0 1.4rem 1rem; }
-.rev-img-thumb {
-  width: 100px; height: 100px; object-fit: cover; border-radius: 8px;
-  border: 1px solid var(--border); cursor: zoom-in; transition: opacity 0.15s;
-}
+.rev-img-thumb { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); cursor: zoom-in; transition: opacity 0.15s; }
 .rev-img-thumb:hover { opacity: 0.82; }
-
-/* ── PRODUCT CHIP ── */
-.rev-product-chip {
-  display: flex; align-items: center; gap: 0.75rem;
-  margin: 0 1.4rem 1rem; background: var(--bg);
-  border: 1px solid var(--border); border-radius: 10px;
-  padding: 0.6rem 0.85rem; max-width: 320px;
-}
-.rev-product-chip-thumb {
-  width: 42px; height: 42px; object-fit: cover; border-radius: 6px;
-  flex-shrink: 0; border: 1px solid var(--border);
-}
+.rev-product-chip { display: flex; align-items: center; gap: 0.75rem; margin: 0 1.4rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem 0.85rem; max-width: 320px; }
+.rev-product-chip-thumb { width: 42px; height: 42px; object-fit: cover; border-radius: 6px; flex-shrink: 0; border: 1px solid var(--border); }
 .rev-product-chip-name  { font-size: 0.82rem; font-weight: 500; line-height: 1.3; }
 .rev-product-chip-price { font-size: 0.76rem; color: var(--text-muted); margin-top: 0.15rem; }
-
-/* ── EMPTY / LOADING ── */
-.rev-empty {
-  text-align: center; padding: 4rem 2rem;
-  color: var(--text-muted); font-size: 0.88rem;
-  background: #fff; border: 1px solid var(--border); border-radius: 12px;
-}
+.rev-empty { text-align: center; padding: 4rem 2rem; color: var(--text-muted); font-size: 0.88rem; background: #fff; border: 1px solid var(--border); border-radius: 12px; }
 .rev-empty-icon { font-size: 2.5rem; margin-bottom: 0.8rem; opacity: 0.4; }
-.rev-count-bar  { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.8rem; }
-
-/* ── RATING BADGE ── */
-.rating-pill {
-  display: inline-flex; align-items: center; gap: 0.25rem;
-  background: #fff8e1; color: #b07c00; border: 1px solid #f0d87a;
-  border-radius: 20px; padding: 0.15rem 0.6rem;
-  font-size: 0.72rem; font-weight: 600;
-}
+.rev-count-bar { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.8rem; }
+.rating-pill { display: inline-flex; align-items: center; gap: 0.25rem; background: #fff8e1; color: #b07c00; border: 1px solid #f0d87a; border-radius: 20px; padding: 0.15rem 0.6rem; font-size: 0.72rem; font-weight: 600; }
 .rating-pill.r5 { background: #e6f9f0; color: #1a8a55; border-color: #a8e8c8; }
 .rating-pill.r4 { background: #eef6ff; color: #1a5fa8; border-color: #a8d0f0; }
 .rating-pill.r3 { background: #fff8e1; color: #b07c00; border-color: #f0d87a; }
@@ -203,8 +80,6 @@
 <body>
 
 <div class="shell">
-  <!-- Sidebar injected by admin-layout.js -->
-
   <main class="main">
     <div class="page-header">
       <div>
@@ -213,51 +88,31 @@
       </div>
     </div>
 
-    <!-- Stats -->
     <div class="rev-stats">
-      <div class="rev-stat">
-        <div class="rev-stat-num" id="stat-total">—</div>
-        <div class="rev-stat-label">Total Reviews</div>
-      </div>
-      <div class="rev-stat">
-        <div class="rev-stat-num" id="stat-avg">—</div>
-        <div class="rev-stat-label">Avg. Rating</div>
-      </div>
-      <div class="rev-stat">
-        <div class="rev-stat-num" id="stat-replied">—</div>
-        <div class="rev-stat-label">Replied</div>
-      </div>
-      <div class="rev-stat">
-        <div class="rev-stat-num" id="stat-pending">—</div>
-        <div class="rev-stat-label">Awaiting Reply</div>
-      </div>
+      <div class="rev-stat"><div class="rev-stat-num" id="stat-total">—</div><div class="rev-stat-label">Total Reviews</div></div>
+      <div class="rev-stat"><div class="rev-stat-num" id="stat-avg">—</div><div class="rev-stat-label">Avg. Rating</div></div>
+      <div class="rev-stat"><div class="rev-stat-num" id="stat-replied">—</div><div class="rev-stat-label">Replied</div></div>
+      <div class="rev-stat"><div class="rev-stat-num" id="stat-pending">—</div><div class="rev-stat-label">Awaiting Reply</div></div>
     </div>
 
-    <!-- Filters -->
     <div class="rev-filters">
       <div class="rev-filter-group">
         <label class="rev-filter-label">Product</label>
-        <select class="rev-filter-select" id="filter-product" onchange="applyFilters()">
-          <option value="">All Products</option>
-        </select>
+        <select class="rev-filter-select" id="filter-product" onchange="applyFilters()"><option value="">All Products</option></select>
       </div>
       <div class="rev-filter-group">
         <label class="rev-filter-label">Rating</label>
         <select class="rev-filter-select" id="filter-rating" onchange="applyFilters()">
           <option value="">All Ratings</option>
-          <option value="5">★★★★★ 5 stars</option>
-          <option value="4">★★★★☆ 4 stars</option>
-          <option value="3">★★★☆☆ 3 stars</option>
-          <option value="2">★★☆☆☆ 2 stars</option>
+          <option value="5">★★★★★ 5 stars</option><option value="4">★★★★☆ 4 stars</option>
+          <option value="3">★★★☆☆ 3 stars</option><option value="2">★★☆☆☆ 2 stars</option>
           <option value="1">★☆☆☆☆ 1 star</option>
         </select>
       </div>
       <div class="rev-filter-group">
         <label class="rev-filter-label">Reply Status</label>
         <select class="rev-filter-select" id="filter-replied" onchange="applyFilters()">
-          <option value="">All</option>
-          <option value="yes">Replied</option>
-          <option value="no">No Reply</option>
+          <option value="">All</option><option value="yes">Replied</option><option value="no">No Reply</option>
         </select>
       </div>
       <div class="rev-filter-group">
@@ -282,7 +137,6 @@ initAdminLayout('reviews');
 
 let _allReviews = [];
 
-/* ── LOAD ── */
 async function loadReviews() {
   try {
     const res  = await adminFetch('api/reviews.php');
@@ -321,7 +175,6 @@ function _updateStats() {
   document.getElementById('stat-pending').textContent = total - replied;
 }
 
-/* ── FILTERS ── */
 function applyFilters() {
   const prod    = document.getElementById('filter-product').value;
   const rating  = document.getElementById('filter-rating').value;
@@ -340,9 +193,8 @@ function applyFilters() {
     return true;
   });
 
-  const bar = document.getElementById('rev-count-bar');
-  bar.textContent = `Showing ${filtered.length} of ${_allReviews.length} review${_allReviews.length !== 1 ? 's' : ''}`;
-
+  document.getElementById('rev-count-bar').textContent =
+    `Showing ${filtered.length} of ${_allReviews.length} review${_allReviews.length !== 1 ? 's' : ''}`;
   renderReviewList(filtered);
 }
 
@@ -354,29 +206,22 @@ function clearFilters() {
   applyFilters();
 }
 
-/* ── RENDER ── */
 function renderReviewList(reviews) {
   const list = document.getElementById('rev-list');
   if (!reviews.length) {
-    list.innerHTML = `<div class="rev-empty">
-      <div class="rev-empty-icon">⭐</div>
-      No reviews match your filters.
-    </div>`;
+    list.innerHTML = `<div class="rev-empty"><div class="rev-empty-icon">⭐</div>No reviews match your filters.</div>`;
     return;
   }
   list.innerHTML = reviews.map(r => renderReviewCard(r)).join('');
 }
 
 function _stars(n) {
-  return Array.from({length:5}, (_,i) =>
-    `<span${i < n ? '' : ' class="empty"'}>★</span>`
-  ).join('');
+  return Array.from({length:5}, (_,i) => `<span${i < n ? '' : ' class="empty"'}>★</span>`).join('');
 }
 
 function _esc(s) {
   if (!s) return '';
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-          .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 function renderReviewCard(r) {
@@ -404,7 +249,7 @@ function renderReviewCard(r) {
   const productChipHtml = r.product ? `
     <div class="rev-product-chip">
       ${r.product_image ? `<img class="rev-product-chip-thumb" src="${_esc(r.product_image)}" alt="${_esc(r.product)}" loading="lazy">` : ''}
-      <div class="rev-product-chip-info">
+      <div>
         <div class="rev-product-chip-name">${_esc(r.product)}</div>
         ${r.product_price ? `<div class="rev-product-chip-price">PHP ${Number(r.product_price).toLocaleString()}</div>` : ''}
       </div>
@@ -419,8 +264,8 @@ function renderReviewCard(r) {
           <div class="rev-meta-sub">
             <span class="rev-stars">${_stars(r.rating)}</span>
             <span class="${ratingPillCls}">★ ${r.rating}</span>
-            <span class="rev-meta-date">${_esc(r.date)}</span>
-            ${r.product ? `<span class="rev-meta-product">· ${_esc(r.product)}</span>` : ''}
+            <span>${_esc(r.date)}</span>
+            ${r.product ? `<span style="color:var(--accent);font-weight:500;">· ${_esc(r.product)}</span>` : ''}
           </div>
         </div>
         <button class="btn-delete-review" onclick="deleteReview(${r.review_id})" title="Delete review">
@@ -450,15 +295,12 @@ function renderReviewCard(r) {
     </div>`;
 }
 
-/* ── REPLY ACTIONS ── */
 function toggleReplyForm(reviewId) {
   const form = document.getElementById('reply-form-' + reviewId);
   if (!form) return;
   const opening = !form.classList.contains('open');
   form.classList.toggle('open', opening);
-  if (opening) {
-    setTimeout(() => form.querySelector('.rev-reply-textarea')?.focus(), 50);
-  }
+  if (opening) setTimeout(() => form.querySelector('.rev-reply-textarea')?.focus(), 50);
 }
 
 async function saveReply(reviewId) {
@@ -470,19 +312,11 @@ async function saveReply(reviewId) {
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
 
   try {
-    const res  = await adminFetch('api/reviews/reply.php', {
-      method: 'POST',
-      body: JSON.stringify({ review_id: reviewId, reply: text }),
-    });
+    const res  = await adminFetch('api/reviews/reply.php', { method: 'POST', body: JSON.stringify({ review_id: reviewId, reply: text }) });
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || 'Failed to save reply.');
-
-    /* Update local cache and re-render that card */
     const idx = _allReviews.findIndex(r => r.review_id === reviewId);
-    if (idx !== -1) {
-      _allReviews[idx].admin_reply = data.reply;
-      _allReviews[idx].reply_date  = data.reply_date;
-    }
+    if (idx !== -1) { _allReviews[idx].admin_reply = data.reply; _allReviews[idx].reply_date = data.reply_date; }
     _updateStats();
     applyFilters();
     showAdminToast('Reply saved.');
@@ -492,44 +326,31 @@ async function saveReply(reviewId) {
   }
 }
 
-
 async function clearReply(reviewId) {
   if (!confirm('Remove this admin reply?')) return;
-
   try {
-    const res  = await adminFetch('api/reviews/reply.php', {
-      method: 'POST',
-      body: JSON.stringify({ review_id: reviewId, reply: '' }),
-    });
+    const res  = await adminFetch('api/reviews/reply.php', { method: 'POST', body: JSON.stringify({ review_id: reviewId, reply: '' }) });
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || 'Failed to clear reply.');
-
     const idx = _allReviews.findIndex(r => r.review_id === reviewId);
     if (idx !== -1) { _allReviews[idx].admin_reply = null; _allReviews[idx].reply_date = null; }
     _updateStats();
     applyFilters();
     showAdminToast('Reply removed.');
-  } catch(e) {
-    showAdminToast('Error: ' + e.message);
-  }
+  } catch(e) { showAdminToast('Error: ' + e.message); }
 }
 
 async function deleteReview(reviewId) {
   if (!confirm('Permanently delete this review? This cannot be undone.')) return;
   try {
-    const res  = await adminFetch('api/reviews.php', {
-      method: 'DELETE',
-      body: JSON.stringify({ review_id: reviewId }),
-    });
+    const res  = await adminFetch('api/reviews.php', { method: 'DELETE', body: JSON.stringify({ review_id: reviewId }) });
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || 'Failed to delete review.');
     _allReviews = _allReviews.filter(r => r.review_id !== reviewId);
     _updateStats();
     applyFilters();
     showAdminToast('Review deleted.');
-  } catch(e) {
-    showAdminToast('Error: ' + e.message);
-  }
+  } catch(e) { showAdminToast('Error: ' + e.message); }
 }
 
 function showAdminToast(msg) {
@@ -557,4 +378,3 @@ loadReviews();
 </script>
 </body>
 </html>
-
