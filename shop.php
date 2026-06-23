@@ -7,7 +7,7 @@ include('connection.php');
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Carousell — Second-Hand Clothing</title>
+<title>ByTheBel — Second-Hand Clothing</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -76,9 +76,9 @@ include('connection.php');
 
 <!-- ══ HOW IT WORKS ═══════════════════════════════════════════════ -->
 <div class="how-section">
-  <div class="how-title">How It Works</div>
+  <div class="how-title reveal">How It Works</div>
   <div class="how-steps">
-    <div class="how-step">
+    <div class="how-step reveal reveal-d1">
       <div class="how-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </div>
@@ -86,8 +86,8 @@ include('connection.php');
       <div class="how-step-title">Browse</div>
       <div class="how-step-desc">Explore our curated collection of quality pre-loved clothing — filtered by size, category, and condition.</div>
     </div>
-    <div class="how-connector"></div>
-    <div class="how-step">
+    <div class="how-connector reveal reveal-d2"></div>
+    <div class="how-step reveal reveal-d3">
       <div class="how-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
       </div>
@@ -95,8 +95,8 @@ include('connection.php');
       <div class="how-step-title">Reserve</div>
       <div class="how-step-desc">Add to cart and pay via GCash. Your item is reserved while we verify your payment — first to pay wins.</div>
     </div>
-    <div class="how-connector"></div>
-    <div class="how-step">
+    <div class="how-connector reveal reveal-d4"></div>
+    <div class="how-step reveal reveal-d5">
       <div class="how-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </div>
@@ -109,7 +109,7 @@ include('connection.php');
 
 <!-- ══ CUSTOMER REVIEWS STRIP ════════════════════════════════════ -->
 <div class="section">
-  <div class="section-header">
+  <div class="section-header reveal">
     <div class="section-title">What Customers Say</div>
     <a class="section-link" href="shop-reviews.php">All reviews →</a>
   </div>
@@ -118,14 +118,31 @@ include('connection.php');
   </div>
 </div>
 
+<!-- ══ FOLLOW US ══════════════════════════════════════════════════ -->
+<div class="follow-section reveal">
+  <div class="follow-title">Follow us on our social media platforms!</div>
+  <div class="follow-sub">Stay updated with our latest drops and announcements.</div>
+  <div class="follow-icons">
+    <a class="follow-icon-link" href="https://facebook.com/your-page" target="_blank" rel="noopener" aria-label="Facebook">
+      <i class="bi bi-facebook"></i>
+    </a>
+    <a class="follow-icon-link" href="https://instagram.com/your-handle" target="_blank" rel="noopener" aria-label="Instagram">
+      <i class="bi bi-instagram"></i>
+    </a>
+    <a class="follow-icon-link" href="https://tiktok.com/@your-handle" target="_blank" rel="noopener" aria-label="TikTok">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="26" height="26"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.17 8.17 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg>
+    </a>
+  </div>
+</div>
+
 <!-- ══ PROMO STRIP ════════════════════════════════════════════════ -->
 <div class="promo-strip">
   <h2>Pre-Loved Style,<br>Zero Compromise</h2>
-  <p>Each item is hand-picked, cleaned, and quality-checked. When you shop Carousell, you give clothes a second life — and your wardrobe something unique.</p>
+  <p>Each item is hand-picked, cleaned, and quality-checked. When you shop ByTheBel, you give clothes a second life — and your wardrobe something unique.</p>
   <button class="btn-outline" onclick="goPage('about')">Our Story</button>
 </div>
 
-<footer><span>© 2025 Carousell. All rights reserved.</span><span style="margin-left:1.5rem;"><a href="shop-terms.php" style="color:inherit;opacity:0.6;font-size:0.78rem;text-decoration:none;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">Terms &amp; Privacy</a></span></footer>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="shop-shared.js?v=2"></script>
@@ -255,8 +272,8 @@ async function buildReviewsStrip() {
     const data = await res.json();
     const list = Array.isArray(data) ? data.filter(r => r.body && r.rating >= 4).slice(0, 3) : [];
     if (!list.length) { strip.innerHTML = '<div class="loading-state" style="font-size:0.82rem;">No reviews yet.</div>'; return; }
-    strip.innerHTML = list.map(r => `
-      <div class="review-strip-card">
+    strip.innerHTML = list.map((r, i) => `
+      <div class="review-strip-card reveal reveal-d${Math.min(i+1,5)}">
         <div class="rsc-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
         <div class="rsc-body">"${escHtml(r.body)}"</div>
         <div class="rsc-footer">
@@ -264,6 +281,7 @@ async function buildReviewsStrip() {
           ${r.product ? `<span class="rsc-product">on ${escHtml(r.product)}</span>` : ''}
         </div>
       </div>`).join('');
+    observeReveal(strip);
   } catch(e) {
     strip.innerHTML = '';
   }
@@ -281,11 +299,34 @@ async function buildRatingStat() {
   } catch(e) {}
 }
 
+/* ══ SCROLL REVEAL ══════════════════════════════════════════════ */
+const _revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      _revealObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+function observeReveal(root) {
+  (root || document).querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => {
+    if (!el.classList.contains('visible')) _revealObserver.observe(el);
+  });
+}
+observeReveal();
+
 /* ══ INIT ═══════════════════════════════════════════════════════ */
 loadProducts(buildFeatured);
 buildCategoryPills();
 buildReviewsStrip();
 buildRatingStat();
+
+/* Observe promo strip + footer area injected by shop-layout.js */
+document.querySelectorAll('.promo-strip, .follow-section').forEach(el => {
+  el.classList.add('reveal');
+  _revealObserver.observe(el);
+});
 
 /* ══ HERO SLIDESHOW ════════════════════════════════════════════ */
 (function() {

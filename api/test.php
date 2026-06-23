@@ -4,7 +4,7 @@ header('Content-Type: application/json; charset=utf-8');
 $out = ['php' => PHP_VERSION, 'time' => date('Y-m-d H:i:s')];
 
 try {
-    $pdo    = new PDO('mysql:host=localhost;dbname=carousell_db;charset=utf8mb4', 'root', '', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+    $pdo    = new PDO('mysql:host=localhost;dbname=bythebel_db;charset=utf8mb4', 'root', '', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
     $tables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
     $out['db']     = 'connected';
     $out['tables'] = $tables;

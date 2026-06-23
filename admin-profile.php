@@ -7,7 +7,7 @@ include('connection.php');
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Edit Profile — Carousell Admin</title>
+<title>Edit Profile — ByTheBel Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="admin-styles.css">
 <style>
@@ -74,14 +74,14 @@ include('connection.php');
           </div>
           <div class="form-group">
             <label class="form-label" for="p-lname">Last Name</label>
-            <input class="form-input" type="text" id="p-lname" placeholder="Carousell" autocomplete="family-name">
+            <input class="form-input" type="text" id="p-lname" placeholder="ByTheBel" autocomplete="family-name">
           </div>
         </div>
 
         <div class="prof-grid-1">
           <div class="form-group">
             <label class="form-label" for="p-email">Email Address</label>
-            <input class="form-input" type="email" id="p-email" placeholder="admin@carousell.com" autocomplete="email">
+            <input class="form-input" type="email" id="p-email" placeholder="admin@bythebel.com" autocomplete="email">
           </div>
         </div>
 
@@ -129,7 +129,7 @@ let _original = {};
 
 (async function init() {
   try {
-    const raw = localStorage.getItem('carousell_session');
+    const raw = localStorage.getItem('bythebel_session');
     if (raw) { const u = JSON.parse(raw); _fill(u); _original = { ...u }; }
   } catch(e) {}
 
@@ -138,10 +138,10 @@ let _original = {};
     const data = await res.json();
     if (data && !data.error) {
       _fill(data); _original = { ...data };
-      const raw = localStorage.getItem('carousell_session');
+      const raw = localStorage.getItem('bythebel_session');
       if (raw) {
         const sess = JSON.parse(raw);
-        localStorage.setItem('carousell_session', JSON.stringify({ ...sess, ...data }));
+        localStorage.setItem('bythebel_session', JSON.stringify({ ...sess, ...data }));
       }
     }
   } catch(e) { console.warn('Profile API unavailable — using session data.', e); }
@@ -210,10 +210,10 @@ async function saveProfile() {
     const data = await res.json();
     if (data.error) { _alert('err', data.error); return; }
 
-    const raw = localStorage.getItem('carousell_session');
+    const raw = localStorage.getItem('bythebel_session');
     if (raw) {
       const sess = JSON.parse(raw);
-      localStorage.setItem('carousell_session', JSON.stringify({ ...sess, first_name: fname, last_name: lname, email }));
+      localStorage.setItem('bythebel_session', JSON.stringify({ ...sess, first_name: fname, last_name: lname, email }));
     }
     _original = { ..._original, first_name: fname, last_name: lname, email };
     ['p-cur-pass','p-new-pass','p-conf-pass'].forEach(id => _set(id, ''));

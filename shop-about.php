@@ -7,7 +7,7 @@ include('connection.php');
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>About — Carousell</title>
+<title>About — ByTheBel</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -21,7 +21,7 @@ include('connection.php');
 <div class="row g-0 align-items-stretch" style="min-height:55vh;">
   <div class="col-12 col-md-5 d-flex flex-column justify-content-center" style="background:var(--bg);padding:clamp(2.5rem,5vw,5rem) clamp(1.5rem,4vw,3rem);">
     <div class="text-uppercase mb-3" style="font-size:.68rem;letter-spacing:.14em;color:var(--text-muted);">Our Brand</div>
-    <h1 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,4vw,3.8rem);letter-spacing:.08em;line-height:1.05;">Carousell</h1>
+    <h1 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,4vw,3.8rem);letter-spacing:.08em;line-height:1.05;">ByTheBel</h1>
     <p class="fst-italic mb-0" style="color:var(--text-muted);font-size:.88rem;line-height:1.75;max-width:380px;">
       We believe clothing should be honest, lasting, and kind to the world. Every pre-loved piece we carry is handpicked with care — for style, quality, and sustainability.
     </p>
@@ -39,13 +39,13 @@ include('connection.php');
     <h3 style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.08em;">Owner Name</h3>
     <div class="text-uppercase mb-3" style="font-size:.76rem;letter-spacing:.1em;color:var(--text-muted);">Founder &amp; Curator</div>
     <p class="fst-italic mb-0" style="font-size:.86rem;color:var(--text-muted);line-height:1.75;">
-      Started as a personal passion for sustainable fashion, Carousell grew from a small thrift collection to a curated second-hand boutique. Every item is personally selected, inspected, and styled — because great clothes deserve a second chapter.
+      Started as a personal passion for sustainable fashion, ByTheBel grew from a small thrift collection to a curated second-hand boutique. Every item is personally selected, inspected, and styled — because great clothes deserve a second chapter.
     </p>
   </div>
 </div>
 
 
-<footer><span>© 2025 Carousell. All rights reserved.</span><span style="margin-left:1.5rem;"><a href="shop-terms.php" style="color:inherit;opacity:0.6;font-size:0.78rem;text-decoration:none;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">Terms &amp; Privacy</a></span></footer>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="shop-shared.js?v=2"></script>

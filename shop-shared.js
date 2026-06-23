@@ -1,9 +1,9 @@
 ﻿/* ════════════════════════════════════════════════════════════════
    shop-shared.js — Shared state and functions for all shop pages.
 
-   Session token stored in localStorage as carousell_session JSON:
+   Session token stored in localStorage as bythebel_session JSON:
      { user_id, first_name, last_name, email, role, token, phone, address }
-   Cart stored separately in carousell_cart.
+   Cart stored separately in bythebel_cart.
 ════════════════════════════════════════════════════════════════ */
 
 /* ── GLOBAL STATE ────────────────────────────────────────────────── */
@@ -43,11 +43,11 @@ function goPage(id) {
    CART PERSISTENCE
 ════════════════════════════════════════════════════════════════ */
 function saveCart() {
-  localStorage.setItem('carousell_cart', JSON.stringify(cart));
+  localStorage.setItem('bythebel_cart', JSON.stringify(cart));
 }
 function loadCart() {
   try {
-    const stored = localStorage.getItem('carousell_cart');
+    const stored = localStorage.getItem('bythebel_cart');
     if (stored) cart = JSON.parse(stored);
   } catch(e) { cart = []; }
 }
@@ -57,7 +57,7 @@ function loadCart() {
 ════════════════════════════════════════════════════════════════ */
 function getShopToken() {
   try {
-    const sess = localStorage.getItem('carousell_session');
+    const sess = localStorage.getItem('bythebel_session');
     if (!sess) return '';
     const obj = JSON.parse(sess);
     return obj.token || '';
@@ -309,6 +309,54 @@ function updateCartBadge() {
   if (badge) badge.textContent = cart.length;
 }
 
+/* ── ORDER STATUS NOTIFICATION BADGES ───────────────────────────
+   Persists a map of { orderId: lastSeenStatus } in localStorage.
+   Any order whose current status differs from the stored one is
+   counted as "unseen". Badges clear when the user opens that tab. */
+
+function _orderSeenKey() {
+  return 'order_seen_' + (currentUser?.user_id || 'guest');
+}
+
+function _getSeenMap() {
+  try { return JSON.parse(localStorage.getItem(_orderSeenKey()) || '{}'); } catch { return {}; }
+}
+
+function _saveSeenMap(map) {
+  try { localStorage.setItem(_orderSeenKey(), JSON.stringify(map)); } catch {}
+}
+
+function _countUnseen(orders, statusList) {
+  const seen = _getSeenMap();
+  return orders.filter(o =>
+    statusList.includes(o.orderStatus) && seen[o.id] !== o.orderStatus
+  ).length;
+}
+
+function _markTabSeen(orders, statusList) {
+  const seen = _getSeenMap();
+  orders.forEach(o => { if (statusList.includes(o.orderStatus)) seen[o.id] = o.orderStatus; });
+  _saveSeenMap(seen);
+}
+
+function updateOrderBadges(orders) {
+  if (!orders) return;
+  const activeCount  = _countUnseen(orders, ACTIVE_ORDER_STATUSES);
+  const historyCount = _countUnseen(orders, FINAL_ORDER_STATUSES);
+
+  _setBadge('order-badge-active',  activeCount);
+  _setBadge('order-badge-history', historyCount);
+  _setBadge('op-tab-badge-active',  activeCount);
+  _setBadge('op-tab-badge-history', historyCount);
+}
+
+function _setBadge(id, count) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = count || '';
+  el.style.display = count ? 'inline-flex' : 'none';
+}
+
 function renderCart() {
   const list      = document.getElementById('cart-items-list');
   const totalEl   = document.getElementById('cart-total-display');
@@ -409,11 +457,16 @@ function setCurrentUser(user) {
   if (dfull)  dfull.textContent  = user ? `${user.first_name} ${user.last_name}` : '—';
   if (demail) demail.textContent = user ? (user.email || '—') : '—';
 
-  /* Review form visibility */
+  /* Review form visibility — desktop sidebar */
   const wall = document.getElementById('review-login-wall');
   const form = document.getElementById('review-form-card');
   if (wall) wall.style.display = user ? 'none' : '';
   if (form) form.style.display = user ? ''     : 'none';
+  /* Review form visibility — mobile panel */
+  const mWall = document.getElementById('mobile-review-login-wall');
+  const mForm = document.getElementById('mobile-review-form-card');
+  if (mWall) mWall.style.display = user ? 'none' : '';
+  if (mForm) mForm.style.display = user ? ''     : 'none';
 
   /* Contact page — show form or login wall */
   const contactWall = document.getElementById('contact-login-wall');
@@ -481,7 +534,7 @@ async function openEditProfile(e) {
       /* Merge fresh data with current session */
       const merged = { ...currentUser, ...data };
       currentUser  = merged;
-      localStorage.setItem('carousell_session', JSON.stringify(merged));
+      localStorage.setItem('bythebel_session', JSON.stringify(merged));
       _fillProfileModal(merged);
     }
   } catch(err) {
@@ -564,7 +617,7 @@ async function saveProfile() {
 
     /* Update local session with new data */
     const updated = { ...currentUser, first_name: fname, last_name: lname, email, phone, address };
-    localStorage.setItem('carousell_session', JSON.stringify(updated));
+    localStorage.setItem('bythebel_session', JSON.stringify(updated));
     setCurrentUser(updated);
 
     _profileMsg('success', 'Profile updated successfully!');
@@ -595,7 +648,7 @@ async function doLogin() {
     const data = await res.json();
     if (data.error) { showAuthError('login-error', data.error); return; }
     if (data.success && data.user) {
-      localStorage.setItem('carousell_session', JSON.stringify(data.user));
+      localStorage.setItem('bythebel_session', JSON.stringify(data.user));
       /* Admin accounts go straight to the admin dashboard */
       if (data.user.role === 'admin') {
         window.location.href = 'admin.php';
@@ -643,7 +696,7 @@ async function doRegister() {
     const data = await res.json();
     if (data.error) { showAuthError('reg-error', data.error); return; }
     if (data.success && data.user) {
-      localStorage.setItem('carousell_session', JSON.stringify(data.user));
+      localStorage.setItem('bythebel_session', JSON.stringify(data.user));
       setCurrentUser(data.user);
       closeAuth();
       showToast(`Account created! Welcome, ${fname}!`);
@@ -670,7 +723,7 @@ async function logOut(e) {
       });
     } catch(err) { /* ignore network errors on logout */ }
   }
-  localStorage.removeItem('carousell_session');
+  localStorage.removeItem('bythebel_session');
   cart = [];
   saveCart();
   /* Return to shop home — user icon becomes the login trigger */
@@ -678,22 +731,28 @@ async function logOut(e) {
 }
 
 function restoreSession() {
-  const stored = localStorage.getItem('carousell_session');
+  const stored = localStorage.getItem('bythebel_session');
   if (stored) {
     try {
       const user = JSON.parse(stored);
       if (user && user.token) setCurrentUser(user);
-      else localStorage.removeItem('carousell_session');
-    } catch(e) { localStorage.removeItem('carousell_session'); }
+      else localStorage.removeItem('bythebel_session');
+    } catch(e) { localStorage.removeItem('bythebel_session'); }
   }
 }
 
 /* ════════════════════════════════════════════════════════════════
    REVIEWS
 ════════════════════════════════════════════════════════════════ */
-function setRating(val) {
+function setRating(val, ctx) {
   currentRating = val;
-  document.querySelectorAll('.star-btn').forEach((btn,i) => btn.classList.toggle('lit', i<val));
+  const pickerId = ctx === 'mobile' ? 'mobile-star-picker' : 'star-picker';
+  const picker = document.getElementById(pickerId);
+  if (picker) picker.querySelectorAll('.star-btn').forEach((btn,i) => btn.classList.toggle('lit', i<val));
+  /* Keep both pickers in sync visually */
+  const otherId = ctx === 'mobile' ? 'star-picker' : 'mobile-star-picker';
+  const other = document.getElementById(otherId);
+  if (other) other.querySelectorAll('.star-btn').forEach((btn,i) => btn.classList.toggle('lit', i<val));
 }
 
 /* Tracks which edit forms are open and which images are pending deletion */
@@ -713,9 +772,10 @@ function relativeTime(timestamp) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-async function submitReview() {
+async function submitReview(ctx) {
   if (!currentUser) { showToast('Please log in to post a review.'); openAuth(); return; }
-  const body = document.getElementById('rv-body').value.trim();
+  const bodyId = ctx === 'mobile' ? 'mobile-rv-body' : 'rv-body';
+  const body = document.getElementById(bodyId)?.value.trim();
   if (!currentRating) { showToast('Please select a star rating.'); return; }
   if (!body)          { showToast('Please write your review.'); return; }
 
@@ -729,8 +789,14 @@ async function submitReview() {
     if (data.success && data.review) {
       reviews.unshift(data.review);
       renderReviews();
-      document.getElementById('rv-body').value = '';
+      /* Clear both textareas and reset stars */
+      const rvBody = document.getElementById('rv-body');
+      const mRvBody = document.getElementById('mobile-rv-body');
+      if (rvBody)  rvBody.value  = '';
+      if (mRvBody) mRvBody.value = '';
       setRating(0);
+      /* Collapse mobile panel after submit */
+      document.getElementById('mobile-review-form-panel')?.classList.remove('open');
       showToast('Review posted! Thank you!');
     }
   } catch(e) {
@@ -892,13 +958,7 @@ function renderReviews() {
     /* ── Admin reply ── */
     const adminReplyHtml = r.admin_reply ? `
       <div class="review-admin-reply">
-        <div class="review-admin-reply-label">
-          <span class="admin-verified-badge">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px;"><polyline points="20 6 9 17 4 12"/></svg>
-            Verified Admin
-          </span>
-          ${r.reply_date ? `<span class="review-admin-reply-date">${escHtml(r.reply_date)}</span>` : ''}
-        </div>
+        <div class="review-admin-reply-label">Admin Reply${r.reply_date ? `<span class="review-admin-reply-date"> · ${escHtml(r.reply_date)}</span>` : ''}</div>
         <div class="review-admin-reply-text">${escHtml(r.admin_reply)}</div>
       </div>` : '';
 
@@ -933,8 +993,8 @@ function renderReviews() {
         <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
         ${isEditing ? editFormHtml : `<div class="review-body">${escHtml(r.body)}</div>`}
         ${imagesHtml}
-        ${adminReplyHtml}
         ${productChipHtml}
+        ${adminReplyHtml}
       </div>`;
   }).join('');
 
@@ -1198,6 +1258,7 @@ async function _fetchAndRenderOrders() {
   try {
     _ordersCache  = await loadMyOrders();
     _ordersLoaded = true;
+    updateOrderBadges(_ordersCache);
     const tab = document.getElementById('orders-panel')?.dataset.ordersTab || 'active';
     _renderOrdersTab(tab, _ordersCache);
   } catch(err) {
@@ -1227,11 +1288,12 @@ function _renderOrdersTab(tab, allOrders) {
   if (!content) return;
 
   const isActive = tab === 'active';
-  const filtered = allOrders.filter(o =>
-    isActive
-      ? ACTIVE_ORDER_STATUSES.includes(o.orderStatus)
-      : FINAL_ORDER_STATUSES.includes(o.orderStatus)
-  );
+  const statusList = isActive ? ACTIVE_ORDER_STATUSES : FINAL_ORDER_STATUSES;
+  const filtered = allOrders.filter(o => statusList.includes(o.orderStatus));
+
+  /* Mark orders in this tab as seen and refresh badges */
+  _markTabSeen(allOrders, statusList);
+  updateOrderBadges(allOrders);
 
   if (!filtered.length) {
     content.innerHTML = `
@@ -1241,7 +1303,7 @@ function _renderOrdersTab(tab, allOrders) {
         <div class="orders-empty-sub" style="font-size:0.8rem;">
           ${isActive
             ? 'You have no orders currently in progress.'
-            : 'Completed and past orders will appear here.'}
+            : 'Completed, rejected, and cancelled orders will appear here.'}
         </div>
         ${isActive ? `<a href="shop-products.php" class="btn-primary" style="display:inline-block;" onclick="closeMyOrdersPanel()">Browse Products</a>` : ''}
       </div>`;
@@ -1282,20 +1344,18 @@ async function loadMyOrders() {
 /* Active order statuses → shown in "My Orders"
    Includes 'Pending Payment' for backward compatibility with orders
    placed before the reservation flow was introduced. */
-/* My Orders — everything the user should actively see, INCLUDING rejection
-   so they never lose visibility of a rejected order. */
+/* My Orders — in-progress orders only */
 const ACTIVE_ORDER_STATUSES = [
   'Payment Verification',
   'Payment Accepted',
-  'Payment Rejected',   /* stays in My Orders so the user sees the rejection */
   'Processing',
   'Shipping',
   'Shipped',
   /* legacy */
-  'Pending Payment', 'Pending Verification', 'Rejected',
+  'Pending Payment', 'Pending Verification',
 ];
-/* Order History — only truly finished orders */
-const FINAL_ORDER_STATUSES = ['Completed'];
+/* Order History — finished and rejected orders */
+const FINAL_ORDER_STATUSES = ['Completed', 'Payment Rejected', 'Cancelled', 'Rejected'];
 
 /* ── User-facing display label for each backend status ────────── */
 function _orderDisplayLabel(orderStatus) {
@@ -1425,10 +1485,17 @@ function renderOrderCard(o) {
         </div>
       </div>`;
   } else if (isAccepted) {
+    const acceptedMsgs = {
+      'Payment Accepted': 'Payment verified! We will start packing your items soon.',
+      'Processing':       'We are packing your items and preparing them for shipment.',
+      'Shipping':         'Your package has been handed to the courier and is on its way.',
+      'Shipped':          'Your package is out for delivery. Please watch for it!',
+    };
+    const acceptedMsg = acceptedMsgs[o.orderStatus] || 'Payment accepted! Your order is now being processed.';
     bannerHtml = `
       <div class="order-completed-banner">
         <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        Payment accepted! Your order is now being processed.
+        ${acceptedMsg}
       </div>`;
   } else if (isRejectedInActive) {
     const reasonHtml = o.rejectionReason
@@ -1443,13 +1510,12 @@ function renderOrderCard(o) {
           <div style="font-weight:600;margin-bottom:0.25rem;">Payment Rejected</div>
           <div>Your payment could not be verified. Please check your GCash details and place a new order.</div>
           ${reasonHtml}
-          <div style="margin-top:0.5rem;">
-            <a href="shop-products.php" onclick="closeMyOrdersPanel()"
-               style="display:inline-block;background:var(--accent);color:#fff;border-radius:6px;
-                      padding:0.35rem 0.9rem;font-size:0.78rem;font-weight:500;text-decoration:none;">
-              Browse Products →
-            </a>
-          </div>
+          <a href="shop-products.php"
+            style="display:inline-block;margin-top:0.75rem;background:#fff;color:#dc2626;
+                   border:1.5px solid #dc2626;border-radius:7px;padding:0.45rem 1rem;
+                   font-size:0.8rem;font-weight:600;text-decoration:none;">
+            Browse Products &amp; Place New Order
+          </a>
         </div>
       </div>`;
   }
@@ -1506,10 +1572,10 @@ function renderOrderCard(o) {
             </div>` : ''}
           ${o.payment?.referenceNumber ? `<div style="font-size:0.72rem;color:var(--text-muted);">Ref: <strong>${escHtml(o.payment.referenceNumber)}</strong></div>` : ''}
           ${o.receipt ? `
-            <button class="btn-view-receipt" onclick="viewReceipt(${o.id})" title="View Receipt">
+            <a class="btn-view-receipt" href="shop-receipt.php?order_id=${o.id}&from=orders" title="View Receipt">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
               View Receipt
-            </button>` : ''}
+            </a>` : ''}
         </div>
       </div>
     </div>`;
@@ -1564,25 +1630,25 @@ function renderHistoryCard(o) {
         </div>
       </div>`;
   } else if (isPaymentRejected) {
+    const reasonHtml = o.rejectionReason
+      ? `<div style="margin-top:0.35rem;font-size:0.8rem;opacity:0.9;"><strong>Reason:</strong> ${escHtml(o.rejectionReason)}</div>`
+      : '';
     bannerHtml = `
       <div style="padding:0.9rem 1.4rem 0;">
         <div class="order-rejected-banner">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
           <div>
-            <div style="font-weight:600;margin-bottom:0.25rem;">Payment Invalid</div>
-            <div>Your payment could not be verified. Please check your GCash details and try again.</div>
+            <div style="font-weight:600;margin-bottom:0.25rem;">Payment Rejected</div>
+            <div>Your payment could not be verified. Please check your GCash details and place a new order.</div>
+            ${reasonHtml}
+            <a href="shop-products.php"
+              style="display:inline-block;margin-top:0.75rem;background:#fff;color:#dc2626;
+                     border:1.5px solid #dc2626;border-radius:7px;padding:0.45rem 1rem;
+                     font-size:0.8rem;font-weight:600;text-decoration:none;">
+              Browse Products &amp; Place New Order
+            </a>
           </div>
         </div>
-      </div>
-      <div style="padding:0.75rem 1.4rem 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
-        <span style="font-size:0.82rem;color:var(--text-muted);">Want to try again?</span>
-        <a href="shop-products.php" onclick="closeMyOrdersPanel()"
-           style="background:var(--accent);color:#fff;border-radius:8px;padding:0.5rem 1.2rem;
-                  font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:500;
-                  text-decoration:none;transition:opacity 0.2s;"
-           onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-          Browse Products →
-        </a>
       </div>`;
   }
 
@@ -1615,11 +1681,15 @@ function renderHistoryCard(o) {
           ${o.payment?.referenceNumber
             ? `<div style="font-size:0.75rem;color:var(--text-muted);">Ref: <strong>${escHtml(o.payment.referenceNumber)}</strong></div>`
             : ''}
-          ${o.receipt ? `
-            <button class="btn-view-receipt" onclick="viewReceipt(${o.id})" title="View Receipt">
+          ${isPaymentRejected ? `
+            <a class="btn-view-receipt" href="shop-order-submission.php?order_id=${o.id}&from=history" title="View Submission">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              View Submission
+            </a>` : o.receipt ? `
+            <a class="btn-view-receipt" href="shop-receipt.php?order_id=${o.id}&from=history" title="View Receipt">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
               View Receipt
-            </button>` : ''}
+            </a>` : ''}
         </div>
       </div>
     </div>`;
@@ -1755,6 +1825,41 @@ function openReviewPhoto(src) {
   ov.style.display = 'flex';
 }
 
+/* Background order polling — fetches every 15 s, updates badges and
+   re-renders the panel live if it is currently open. */
+function _pollOrders() {
+  if (!currentUser) return;
+  loadMyOrders().then(orders => {
+    _ordersCache = orders;
+    updateOrderBadges(orders);
+
+    /* If the panel is open, re-render the active tab silently */
+    const panel = document.getElementById('orders-panel');
+    if (panel && panel.classList.contains('open')) {
+      const tab = panel.dataset.ordersTab || 'active';
+      _renderOrdersTab(tab, orders);
+    }
+  }).catch(() => {});
+}
+
+let _orderPollInterval = null;
+
+function _startOrderPolling() {
+  if (!currentUser || _orderPollInterval) return;
+  _pollOrders();
+  _orderPollInterval = setInterval(_pollOrders, 15000);
+}
+
+function _stopOrderPolling() {
+  if (_orderPollInterval) { clearInterval(_orderPollInterval); _orderPollInterval = null; }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _startOrderPolling);
+} else {
+  setTimeout(_startOrderPolling, 0);
+}
+
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -1797,158 +1902,29 @@ document.addEventListener('keydown', e => {
   }
 });
 
-/* ════════════════════════════════════════════════════════════════
-   RECEIPT MODAL
-   viewReceipt(orderId) — fetches api/receipts.php and shows a modal.
-   downloadReceipt()    — triggers browser print of the modal content.
-════════════════════════════════════════════════════════════════ */
-function _ensureReceiptModal() {
-  if (document.getElementById('receipt-modal-overlay')) return;
-  const overlay = document.createElement('div');
-  overlay.id = 'receipt-modal-overlay';
-  overlay.className = 'receipt-modal-overlay';
-  overlay.innerHTML = `
-    <div class="receipt-modal" id="receipt-modal">
-      <div class="receipt-modal-header">
-        <div class="receipt-modal-logo">Carousell</div>
-        <button class="receipt-modal-close" onclick="closeReceiptModal()" title="Close">&#x2715;</button>
-      </div>
-      <div class="receipt-modal-body" id="receipt-modal-body">
-        <div class="receipt-loading">Loading receipt…</div>
-      </div>
-      <div class="receipt-modal-actions no-print">
-        <button class="btn-receipt-close no-print" onclick="closeReceiptModal()">Close</button>
-      </div>
-    </div>`;
-  overlay.addEventListener('click', e => { if (e.target === overlay) closeReceiptModal(); });
-  document.body.appendChild(overlay);
-}
-
-async function viewReceipt(orderId) {
-  _ensureReceiptModal();
-  const overlay = document.getElementById('receipt-modal-overlay');
-  const body    = document.getElementById('receipt-modal-body');
-  overlay.classList.add('open');
-  body.innerHTML = '<div class="receipt-loading">Loading receipt…</div>';
-
-  try {
-    const res  = await shopFetch(`api/receipts.php?order_id=${orderId}`);
-    const data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error || 'Could not load receipt.');
-    body.innerHTML = _buildReceiptHtml(data);
-  } catch(e) {
-    body.innerHTML = `<div class="receipt-loading" style="color:var(--danger,#e53e3e);">
-      ${escHtml(e.message || 'Failed to load receipt.')}</div>`;
-  }
-}
-
-function closeReceiptModal() {
-  const overlay = document.getElementById('receipt-modal-overlay');
-  if (overlay) overlay.classList.remove('open');
-}
-
-function downloadReceipt() {
-  window.print();
-}
-
-function _buildReceiptHtml(r) {
-  const fmt   = v => Number(v).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const fmtDt = s => s ? new Date(s).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
-
-  const itemRows = (r.items || []).map(item => `
-    <tr>
-      <td>${escHtml(item.name)}</td>
-      <td style="text-align:center;">${escHtml(item.size || '—')}</td>
-      <td style="text-align:center;">${item.quantity}</td>
-      <td style="text-align:right;">₱${fmt(item.price)}</td>
-      <td style="text-align:right;">₱${fmt(item.price * item.quantity)}</td>
-    </tr>`).join('');
-
-  const shippingRow = r.shippingFee > 0 ? `
-    <tr class="receipt-subtotal-row">
-      <td colspan="4" style="text-align:right;padding-top:0.6rem;">Shipping Fee</td>
-      <td style="text-align:right;padding-top:0.6rem;">₱${fmt(r.shippingFee)}</td>
-    </tr>` : '';
-
-  return `
-    <div class="receipt-content">
-      <div class="receipt-title-row">
-        <div class="receipt-title">Payment Receipt</div>
-        <div class="receipt-number">${escHtml(r.receiptNumber)}</div>
-      </div>
-
-      <div class="receipt-meta-grid">
-        <div class="receipt-meta-item">
-          <span class="receipt-meta-label">Order ID</span>
-          <span class="receipt-meta-value">#${r.orderId}</span>
-        </div>
-        <div class="receipt-meta-item">
-          <span class="receipt-meta-label">Receipt Date</span>
-          <span class="receipt-meta-value">${fmtDt(r.generatedAt)}</span>
-        </div>
-        <div class="receipt-meta-item">
-          <span class="receipt-meta-label">Payment Date</span>
-          <span class="receipt-meta-value">${fmtDt(r.payment.datePaid)}</span>
-        </div>
-        <div class="receipt-meta-item">
-          <span class="receipt-meta-label">Payment Method</span>
-          <span class="receipt-meta-value">${escHtml(r.payment.method || 'GCash')}</span>
-        </div>
-        <div class="receipt-meta-item">
-          <span class="receipt-meta-label">Reference No.</span>
-          <span class="receipt-meta-value">${escHtml(r.payment.referenceNumber || '—')}</span>
-        </div>
-        <div class="receipt-meta-item">
-          <span class="receipt-meta-label">Payment Status</span>
-          <span class="receipt-meta-value receipt-status-approved">${escHtml(r.payment.status || 'Approved')}</span>
-        </div>
-      </div>
-
-      ${r.deliveryAddress ? `
-      <div class="receipt-delivery-address">
-        <span class="receipt-meta-label">Delivery Address</span>
-        <span class="receipt-meta-value">${escHtml(r.deliveryAddress)}</span>
-      </div>` : ''}
-
-      <div class="receipt-divider"></div>
-
-      <table class="receipt-items-table">
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th style="text-align:center;">Size</th>
-            <th style="text-align:center;">Qty</th>
-            <th style="text-align:right;">Unit Price</th>
-            <th style="text-align:right;">Amount</th>
-          </tr>
-        </thead>
-        <tbody>${itemRows}</tbody>
-        <tfoot>
-          <tr class="receipt-subtotal-row">
-            <td colspan="4" style="text-align:right;">Subtotal</td>
-            <td style="text-align:right;">₱${fmt(r.subtotal)}</td>
-          </tr>
-          ${shippingRow}
-          <tr class="receipt-total-row">
-            <td colspan="4" style="text-align:right;">Total</td>
-            <td style="text-align:right;">₱${fmt(r.totalAmount)}</td>
-          </tr>
-        </tfoot>
-      </table>
-
-      <div class="receipt-divider"></div>
-      <div class="receipt-footer-note">
-        Thank you for your purchase! This is your official payment receipt from Carousell.
-      </div>
-    </div>`;
+/* viewReceipt and viewSubmission now navigate to dedicated pages */
+function viewReceipt(orderId, from) {
+  window.location.href = 'shop-receipt.php?order_id=' + orderId + '&from=' + (from || 'orders');
 }
 
 /* ── ADMIN PREVIEW BAR ───────────────────────────────────────────── */
 function checkAdminPreviewMode() {
+  /* Set the flag when navigating from the admin panel */
   if (new URLSearchParams(window.location.search).get('from') === 'admin') {
-    sessionStorage.setItem('carousell_admin_preview', '1');
+    sessionStorage.setItem('bythebel_admin_preview', '1');
   }
-  if (sessionStorage.getItem('carousell_admin_preview') === '1') {
+
+  /* Also treat any logged-in admin as being in preview mode — the bar
+     should be visible whenever an admin account is active on the shop,
+     regardless of how they got here. */
+  try {
+    const sess = JSON.parse(localStorage.getItem('bythebel_session') || 'null');
+    if (sess && sess.role === 'admin') {
+      sessionStorage.setItem('bythebel_admin_preview', '1');
+    }
+  } catch(e) {}
+
+  if (sessionStorage.getItem('bythebel_admin_preview') === '1') {
     const bar = document.getElementById('admin-bar');
     if (bar) { bar.classList.add('visible'); document.body.classList.add('admin-preview-mode'); }
   }

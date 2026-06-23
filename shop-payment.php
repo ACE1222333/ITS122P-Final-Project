@@ -7,7 +7,7 @@ include('connection.php');
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Checkout &mdash; Carousell</title>
+<title>Checkout &mdash; ByTheBel</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -171,6 +171,12 @@ include('connection.php');
               <div class="gcash-qr-wrap">
                 <img src="images/qr.jpg" alt="GCash QR Code" style="width:180px;height:180px;object-fit:contain;margin:0 auto;display:block;border-radius:10px;">
               </div>
+              <div style="margin-top:1rem;text-align:center;font-size:0.78rem;color:var(--text-muted);">Or</div>
+              <div style="margin-top:0.5rem;background:var(--bg-section);border:1px solid var(--border);border-radius:10px;padding:0.75rem 1rem;font-size:0.84rem;line-height:1.7;">
+                <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.35rem;">You can also send to</div>
+                <div><span style="color:var(--text-muted);font-size:0.8rem;">GCash #:</span> <strong>09XX XXX XXXX</strong></div>
+                <div><span style="color:var(--text-muted);font-size:0.8rem;">Account Name:</span> <strong>Account Name Here</strong></div>
+              </div>
             </div>
           </div>
 
@@ -261,7 +267,7 @@ include('connection.php');
   </div><!-- /payment-inner -->
 </div><!-- /payment-page -->
 
-<footer><span>&copy; 2025 Carousell. All rights reserved.</span><span style="margin-left:1.5rem;"><a href="shop-terms.php" style="color:inherit;opacity:0.6;font-size:0.78rem;text-decoration:none;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">Terms &amp; Privacy</a></span></footer>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="shop-shared.js?v=2"></script>

@@ -11,7 +11,7 @@ let payments = [];   /* all orders/payments   — used by admin-payments.html */
 /* ── AUTH HELPERS ────────────────────────────────────────────── */
 function getAdminToken() {
   try {
-    const sess = localStorage.getItem('carousell_session');
+    const sess = localStorage.getItem('bythebel_session');
     if (!sess) return '';
     const obj = JSON.parse(sess);
     return obj.token || '';
@@ -20,7 +20,7 @@ function getAdminToken() {
 
 function checkAdminAuth() {
   try {
-    const sess = localStorage.getItem('carousell_session');
+    const sess = localStorage.getItem('bythebel_session');
     if (!sess) {
       window.location.href = 'admin-login.php';
       return;
@@ -28,11 +28,11 @@ function checkAdminAuth() {
     const obj = JSON.parse(sess);
     if (!obj.token || obj.role !== 'admin') {
       /* Clear stale session so login page starts fresh */
-      localStorage.removeItem('carousell_session');
+      localStorage.removeItem('bythebel_session');
       window.location.href = 'admin-login.php';
     }
   } catch(e) {
-    localStorage.removeItem('carousell_session');
+    localStorage.removeItem('bythebel_session');
     window.location.href = 'admin-login.php';
   }
 }
@@ -71,7 +71,7 @@ async function adminFetch(url, options = {}) {
     if (!window.location.pathname.includes('admin-login')) {
       showToast('Session expired — please sign in again.');
       setTimeout(() => {
-        localStorage.removeItem('carousell_session');
+        localStorage.removeItem('bythebel_session');
         window.location.href = 'admin-login.php';
       }, 1800);
     }
@@ -193,7 +193,14 @@ function openRejectWithReason(title, msg, onConfirm, confirmLabel = 'Reject') {
   okBtn.className   = 'btn-confirm-del';
   okBtn.onclick = () => {
     const reason = inputEl ? inputEl.value.trim() : '';
-    if (inputEl) { inputEl.style.display = 'none'; inputEl.value = ''; }
+    /* Block submission if reason textarea is visible but empty */
+    if (inputEl && inputEl.style.display !== 'none' && !reason) {
+      inputEl.style.borderColor = 'var(--red, #dc2626)';
+      inputEl.placeholder = 'A reason is required before rejecting';
+      inputEl.focus();
+      return;
+    }
+    if (inputEl) { inputEl.style.display = 'none'; inputEl.value = ''; inputEl.style.borderColor = ''; }
     closeConfirm();
     onConfirm(reason);
   };

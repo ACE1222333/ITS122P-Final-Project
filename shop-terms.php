@@ -7,7 +7,7 @@ include('connection.php');
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Terms &amp; Privacy &mdash; Carousell</title>
+<title>Terms &amp; Privacy &mdash; ByTheBel</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -77,13 +77,13 @@ include('connection.php');
   <div class="terms-section" id="terms">
     <div class="terms-section-title">1. Terms &amp; Conditions</div>
 
-    <p>By accessing and placing an order on Carousell, you confirm that you have read, understood, and agree to these Terms &amp; Conditions. These terms apply to all visitors, users, and customers of our shop.</p>
+    <p>By accessing and placing an order on ByTheBel, you confirm that you have read, understood, and agree to these Terms &amp; Conditions. These terms apply to all visitors, users, and customers of our shop.</p>
 
     <p><strong>1.1 Eligibility</strong><br>
     You must be at least 18 years old, or have parental consent, to place an order on this website. By placing an order, you confirm you meet this requirement.</p>
 
     <p><strong>1.2 Product Listings</strong><br>
-    All items listed on Carousell are second-hand / pre-loved clothing. Each item is unique &mdash; once sold, it cannot be restocked. Product photos and descriptions accurately represent the item. Minor color variations due to lighting or screen settings may occur.</p>
+    All items listed on ByTheBel are second-hand / pre-loved clothing. Each item is unique &mdash; once sold, it cannot be restocked. Product photos and descriptions accurately represent the item. Minor color variations due to lighting or screen settings may occur.</p>
 
     <p><strong>1.3 Order Confirmation</strong><br>
     Placing an order and submitting payment does not guarantee your purchase. Your order is only confirmed once your payment has been verified and approved by our team. We reserve the right to cancel any order if payment cannot be verified.</p>
@@ -208,7 +208,7 @@ include('connection.php');
 
 </div>
 
-<footer><span>&copy; 2025 Carousell. All rights reserved.</span></footer>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="shop-shared.js?v=2"></script>

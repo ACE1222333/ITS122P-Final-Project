@@ -61,6 +61,14 @@ try {
     }
 } catch (Throwable $e) { /* ignore — column already exists */ }
 
+/* Check if items_json column exists — add it if not */
+try {
+    $chk = $db->query("SHOW COLUMNS FROM orders LIKE 'items_json'");
+    if ($chk->rowCount() === 0) {
+        $db->exec("ALTER TABLE orders ADD COLUMN items_json LONGTEXT NULL");
+    }
+} catch (Throwable $e) { /* ignore — column already exists */ }
+
 $db->beginTransaction();
 
 try {

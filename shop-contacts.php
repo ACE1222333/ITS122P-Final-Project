@@ -7,7 +7,7 @@ include('connection.php');
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contact — Carousell</title>
+<title>Contact — ByTheBel</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -29,25 +29,6 @@ include('connection.php');
   .contact-card-value { font-size: 0.9rem; font-weight: 500; color: var(--text); }
   .contact-card-arrow { margin-left: auto; color: var(--text-light); font-size: 1rem; transition: transform .2s; }
   .contact-card:hover .contact-card-arrow { transform: translate(3px, -3px); color: var(--accent); }
-
-  /* â”€â”€ Follow Us section â”€â”€ */
-  .follow-section { background: var(--bg-card); border-top: 1px solid var(--border); padding: 5rem 2rem; }
-  .follow-section .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: .1em; color: var(--text); }
-  .follow-section .section-sub { color: var(--text-muted); font-size: 0.88rem; }
-
-  /* â”€â”€ Social platform cards â”€â”€ */
-  .platform-card { border-radius: 20px; overflow: hidden; text-decoration: none; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 2.2rem 1.5rem 1.8rem; gap: 0.9rem; transition: transform .2s, box-shadow .2s; border: none; }
-  .platform-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,.18); color: #fff; }
-  .platform-card .plat-icon { width: 64px; height: 64px; border-radius: 16px; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; font-size: 2rem; }
-  .platform-card .plat-icon img { width: 40px; height: 40px; object-fit: contain; }
-  .platform-card .plat-name { font-size: 1.1rem; font-weight: 600; letter-spacing: .03em; }
-  .platform-card .plat-handle { font-size: 0.8rem; opacity: .8; }
-  .platform-card .plat-btn { margin-top: .4rem; background: rgba(255,255,255,.22); border: 1.5px solid rgba(255,255,255,.4); border-radius: 999px; padding: .38rem 1.4rem; font-size: .8rem; font-weight: 600; letter-spacing: .04em; color: #fff; transition: background .2s; }
-  .platform-card:hover .plat-btn { background: rgba(255,255,255,.35); }
-
-  .fb-card   { background: linear-gradient(135deg, #1877F2, #0a5fd4); }
-  .ig-card   { background: radial-gradient(circle at 30% 110%, #fdf497 0%, #fd5949 40%, #d6249f 65%, #285AEB 100%); }
-  .tt-card   { background: linear-gradient(135deg, #010101, #2b2b2b); }
 
   @media (max-width: 768px) {
     .contact-hero { grid-template-columns: 1fr; }
@@ -117,54 +98,11 @@ include('connection.php');
 
   <div class="contact-hero-right">
     <img src="https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=800&q=85&auto=format&fit=crop"
-         alt="Contact Carousell" loading="lazy">
+         alt="Contact ByTheBel" loading="lazy">
   </div>
 </div>
 
-<!-- â”€â”€ FOLLOW US â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
-<div class="follow-section">
-  <div class="text-center mb-5">
-    <div class="section-title">Follow Us</div>
-    <div class="section-sub">Stay updated with our latest drops and announcements.</div>
-  </div>
 
-  <div class="container">
-    <div class="row g-4 justify-content-center">
-
-      <div class="col-12 col-sm-6 col-md-4">
-        <a class="platform-card fb-card w-100" href="https://facebook.com/your-page" target="_blank" rel="noopener">
-          <div class="plat-icon"><i class="bi bi-facebook"></i></div>
-          <div class="plat-name">Facebook</div>
-          <div class="plat-handle">@your-page</div>
-          <div class="plat-btn">Visit Page</div>
-        </a>
-      </div>
-
-      <div class="col-12 col-sm-6 col-md-4">
-        <a class="platform-card ig-card w-100" href="https://instagram.com/your-handle" target="_blank" rel="noopener">
-          <div class="plat-icon"><i class="bi bi-instagram"></i></div>
-          <div class="plat-name">Instagram</div>
-          <div class="plat-handle">@your-handle</div>
-          <div class="plat-btn">Follow Us</div>
-        </a>
-      </div>
-
-      <div class="col-12 col-sm-6 col-md-4">
-        <a class="platform-card tt-card w-100" href="https://tiktok.com/@your-handle" target="_blank" rel="noopener">
-          <div class="plat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#fff" width="36" height="36"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.17 8.17 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg>
-          </div>
-          <div class="plat-name">TikTok</div>
-          <div class="plat-handle">@your-handle</div>
-          <div class="plat-btn">Watch Now</div>
-        </a>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<footer><span>© 2025 Carousell. All rights reserved.</span><span style="margin-left:1.5rem;"><a href="shop-terms.php" style="color:inherit;opacity:0.6;font-size:0.78rem;text-decoration:none;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">Terms &amp; Privacy</a></span></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="shop-shared.js?v=2"></script>

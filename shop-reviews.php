@@ -7,7 +7,7 @@ include('connection.php');
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reviews — Carousell</title>
+<title>Reviews — ByTheBel</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -19,13 +19,45 @@ include('connection.php');
 
 <div class="reviews-hero">
   <h1>Customer Reviews</h1>
-  <p>Real feedback from real Carousell customers.</p>
+  <p>Real feedback from real ByTheBel customers.</p>
 </div>
 
 <div class="reviews-layout" style="max-width:1100px;margin:0 auto;">
 
   <!-- Left: list + rating summary -->
   <div class="reviews-list-wrap">
+
+    <!-- Mobile-only: Write a Review toggle button -->
+    <div class="mobile-write-review-btn-wrap">
+      <button class="mobile-write-review-btn" id="mobile-write-review-btn" onclick="toggleMobileReviewForm()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Write a Review
+      </button>
+      <!-- Collapsible form panel (mobile only) -->
+      <div class="mobile-review-form-panel" id="mobile-review-form-panel">
+        <div class="mobile-review-form-inner">
+          <div class="login-wall" id="mobile-review-login-wall">
+            <h4>Sign in to Review</h4>
+            <p>Only verified customers can post reviews. Log in or create a free account.</p>
+            <button class="btn-login-prompt" onclick="openAuth()">Log in / Register</button>
+          </div>
+          <div class="review-form-card" id="mobile-review-form-card" style="display:none;">
+            <label class="rf-label">Your Rating</label>
+            <div class="star-picker" id="mobile-star-picker">
+              <button class="star-btn" onclick="setRating(1,'mobile')">★</button>
+              <button class="star-btn" onclick="setRating(2,'mobile')">★</button>
+              <button class="star-btn" onclick="setRating(3,'mobile')">★</button>
+              <button class="star-btn" onclick="setRating(4,'mobile')">★</button>
+              <button class="star-btn" onclick="setRating(5,'mobile')">★</button>
+            </div>
+            <label class="rf-label">Your Review</label>
+            <textarea class="rf-textarea" id="mobile-rv-body" placeholder="Share your experience with this piece…"></textarea>
+            <button class="btn-submit-review" onclick="submitReview('mobile')">Post Review</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="rating-summary" id="rating-summary">
       <div class="avg-score">
         <div class="big-num"   id="avg-num">—</div>
@@ -41,17 +73,15 @@ include('connection.php');
     </div>
   </div>
 
-  <!-- Right: form or login wall -->
+  <!-- Right: form or login wall (desktop sidebar) -->
   <div class="review-form-wrap">
 
-    <!-- Shown when NOT logged in -->
     <div class="login-wall" id="review-login-wall">
       <h4>Sign in to Review</h4>
       <p>Only verified customers can post reviews. Log in or create a free account to share your experience.</p>
       <button class="btn-login-prompt" onclick="openAuth()">Log in / Register</button>
     </div>
 
-    <!-- Shown when logged in -->
     <div class="review-form-card" id="review-form-card" style="display:none;">
       <h3>Write a Review</h3>
 
@@ -70,9 +100,10 @@ include('connection.php');
       <button class="btn-submit-review" onclick="submitReview()">Post Review</button>
     </div>
   </div>
+
 </div>
 
-<footer><span>© 2025 Carousell. All rights reserved.</span><span style="margin-left:1.5rem;"><a href="shop-terms.php" style="color:inherit;opacity:0.6;font-size:0.78rem;text-decoration:none;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">Terms &amp; Privacy</a></span></footer>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="shop-shared.js?v=2"></script>

@@ -7,7 +7,7 @@ include('connection.php');
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reviews — Carousell Admin</title>
+<title>Reviews — ByTheBel Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="admin-styles.css">
 <style>
@@ -36,11 +36,10 @@ include('connection.php');
 .rev-stars { color: #f59e0b; font-size: 1rem; letter-spacing: 0.05em; }
 .rev-stars .empty { color: #ddd; }
 .rev-body { padding: 0 1.4rem 1.2rem; font-size: 0.85rem; line-height: 1.65; color: var(--text); }
-.rev-reply-block { margin: 0 1.4rem 1.2rem; background: #f7f5ff; border: 1px solid #d8d0f8; border-left: 3px solid var(--accent); border-radius: 8px; padding: 0.9rem 1rem; }
-.rev-reply-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.35rem; }
-.rev-reply-label svg { width: 12px; height: 12px; stroke: var(--accent); fill: none; stroke-width: 2.5; flex-shrink: 0; }
-.rev-reply-text { font-size: 0.83rem; line-height: 1.6; color: #333; }
-.rev-reply-date { font-size: 0.7rem; color: #999; margin-top: 0.3rem; }
+.rev-reply-block { margin: 0 1.4rem 1.2rem; border-top: 1px solid var(--border); padding-top: 0.85rem; }
+.rev-reply-label { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.35rem; }
+.rev-reply-text { font-size: 0.83rem; line-height: 1.6; color: var(--text); }
+.rev-reply-date { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem; }
 .rev-card-footer { border-top: 1px solid var(--border); padding: 0.75rem 1.4rem; background: #fafafa; display: flex; gap: 0.6rem; align-items: center; }
 .btn-open-reply { background: var(--accent); color: #fff; border: none; border-radius: 7px; padding: 0.45rem 1.1rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s; display: inline-flex; align-items: center; gap: 0.35rem; }
 .btn-open-reply:hover { opacity: 0.88; }
@@ -230,10 +229,7 @@ function renderReviewCard(r) {
 
   const replyBlock = r.admin_reply ? `
     <div class="rev-reply-block">
-      <div class="rev-reply-label">
-        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        Admin Reply
-      </div>
+      <div class="rev-reply-label">Admin Reply</div>
       <div class="rev-reply-text">${_esc(r.admin_reply)}</div>
       ${r.reply_date ? `<div class="rev-reply-date">${_esc(r.reply_date)}</div>` : ''}
     </div>` : '';
@@ -275,8 +271,8 @@ function renderReviewCard(r) {
       </div>
       <div class="rev-body">${_esc(r.body)}</div>
       ${imagesHtml}
-      ${replyBlock}
       ${productChipHtml}
+      ${replyBlock}
       <div class="rev-card-footer">
         <button class="btn-open-reply" onclick="toggleReplyForm(${r.review_id})">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>

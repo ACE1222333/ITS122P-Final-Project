@@ -7,119 +7,10 @@ include('connection.php');
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Orders — Carousell Admin</title>
+<title>Orders — ByTheBel Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="admin-styles.css">
-<style>
-/* â”€â”€ ORDER SIDE PANEL â”€â”€ */
-.order-panel-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(15,15,15,0.45); backdrop-filter: blur(3px);
-  z-index: 800;
-}
-.order-panel-overlay.open { display: block; }
-
-.order-panel {
-  position: fixed; top: 0; right: 0; bottom: 0;
-  width: 520px; max-width: 100vw;
-  background: #fff; display: flex; flex-direction: column;
-  box-shadow: -8px 0 40px rgba(0,0,0,0.18);
-  transform: translateX(100%);
-  transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
-  z-index: 801;
-}
-.order-panel.open { transform: translateX(0); }
-
-.panel-header {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  padding: 1.4rem 1.6rem; border-bottom: 1px solid var(--border); flex-shrink: 0;
-}
-.panel-header-left { display: flex; flex-direction: column; gap: 0.25rem; }
-.panel-order-id   { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.08em; line-height: 1; }
-.panel-order-date { font-size: 0.75rem; color: var(--text-muted); }
-.panel-close {
-  width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%;
-  border: 1px solid var(--border); background: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1rem; color: var(--text-muted); transition: background 0.2s, color 0.2s;
-}
-.panel-close:hover { background: var(--bg-section); color: var(--text); }
-
-.panel-body { flex: 1; overflow-y: auto; padding: 0 1.6rem 1.6rem; }
-
-.panel-section { padding-top: 1.4rem; }
-.panel-section + .panel-section { border-top: 1px solid var(--border); margin-top: 1.4rem; padding-top: 1.4rem; }
-.panel-section-title {
-  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--text-muted); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;
-}
-.panel-section-title svg { width: 14px; height: 14px; stroke: var(--text-muted); fill: none; stroke-width: 2; flex-shrink: 0; }
-
-.panel-row {
-  display: flex; justify-content: space-between; align-items: flex-start;
-  gap: 1rem; margin-bottom: 0.6rem; font-size: 0.83rem;
-}
-.panel-row:last-child { margin-bottom: 0; }
-.panel-key { color: var(--text-muted); flex-shrink: 0; }
-.panel-val { text-align: right; font-weight: 500; word-break: break-word; max-width: 65%; }
-.panel-val.mono { font-family: monospace; font-size: 0.8rem; letter-spacing: 0.04em; }
-
-.panel-product {
-  display: flex; align-items: center; gap: 0.9rem;
-  padding: 0.75rem 0; border-bottom: 1px solid var(--border);
-}
-.panel-product:last-child { border-bottom: none; }
-.panel-product-img { width: 58px; height: 68px; border-radius: 8px; object-fit: cover; background: var(--bg-section); flex-shrink: 0; }
-.panel-product-img-placeholder { width: 58px; height: 68px; border-radius: 8px; background: var(--bg-section); flex-shrink: 0; }
-.panel-product-name  { font-size: 0.86rem; font-weight: 600; margin-bottom: 0.25rem; }
-.panel-product-meta  { font-size: 0.76rem; color: var(--text-muted); }
-.panel-product-price { font-size: 0.86rem; font-weight: 600; margin-left: auto; flex-shrink: 0; }
-
-.panel-total-row {
-  display: flex; justify-content: space-between; align-items: baseline;
-  padding: 0.9rem 0 0; margin-top: 0.5rem; border-top: 1px solid var(--border); font-weight: 600;
-}
-.panel-total-label  { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
-.panel-total-amount { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 0.06em; }
-
-.panel-footer {
-  flex-shrink: 0; border-top: 1px solid var(--border);
-  padding: 1.2rem 1.6rem; background: var(--bg-card);
-}
-.panel-footer-title {
-  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--text-muted); margin-bottom: 0.9rem;
-}
-.panel-status-group { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1rem; }
-.panel-status-label {
-  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--text-muted);
-}
-.panel-status-select {
-  background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px;
-  padding: 0.65rem 0.85rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
-  color: var(--text); outline: none; cursor: pointer; transition: border-color 0.2s;
-}
-.panel-status-select:focus { border-color: var(--accent); }
-.btn-panel-save {
-  width: 100%; background: var(--accent); color: #fff; border: none;
-  border-radius: 8px; padding: 0.8rem; font-family: 'DM Sans', sans-serif;
-  font-size: 0.86rem; font-weight: 500; letter-spacing: 0.06em;
-  cursor: pointer; transition: opacity 0.2s, transform 0.15s;
-  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-}
-.btn-panel-save:hover:not(:disabled) { opacity: 0.87; transform: translateY(-1px); }
-.btn-panel-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-.btn-panel-save svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }
-
-.save-success-badge {
-  display: none; align-items: center; gap: 0.4rem;
-  font-size: 0.78rem; color: var(--green); font-weight: 500; margin-top: 0.5rem;
-  justify-content: center;
-}
-.save-success-badge.show { display: flex; }
-.save-success-badge svg { width: 14px; height: 14px; stroke: var(--green); fill: none; stroke-width: 2.5; }
-</style>
+<style></style>
 </head>
 <body>
 
@@ -162,98 +53,6 @@ include('connection.php');
   </main>
 </div>
 
-<!-- ══ ORDER DETAIL SIDE PANEL ══ -->
-<div class="order-panel-overlay" id="panel-overlay" onclick="closePanelFromOverlay(event)"></div>
-
-<aside class="order-panel" id="order-panel">
-
-  <div class="panel-header">
-    <div class="panel-header-left">
-      <div class="panel-order-id" id="panel-order-id">Order —</div>
-      <div class="panel-order-date" id="panel-order-date">—</div>
-    </div>
-    <button class="panel-close" onclick="closeOrderPanel()" title="Close">
-      <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;">
-        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-      </svg>
-    </button>
-  </div>
-
-  <div class="panel-body">
-    <div class="panel-section">
-      <div class="panel-section-title">
-        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Customer Information
-      </div>
-      <div class="panel-row"><span class="panel-key">Name</span><span class="panel-val" id="panel-cust-name">—</span></div>
-      <div class="panel-row"><span class="panel-key">Email</span><span class="panel-val" id="panel-cust-email">—</span></div>
-      <div class="panel-row"><span class="panel-key">Contact</span><span class="panel-val" id="panel-cust-phone">—</span></div>
-      <div class="panel-row"><span class="panel-key">Shipping Address</span><span class="panel-val" id="panel-cust-address">—</span></div>
-    </div>
-
-    <div class="panel-section">
-      <div class="panel-section-title">
-        <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
-        Ordered Products
-      </div>
-      <div id="panel-products-list"></div>
-      <div class="panel-total-row" style="border-top:1px solid var(--border);padding-top:0.6rem;margin-top:0.4rem;">
-        <span class="panel-total-label" style="font-size:0.75rem;">Subtotal</span>
-        <span style="font-size:0.86rem;" id="panel-subtotal">₱0</span>
-      </div>
-      <div class="panel-total-row" id="panel-shipping-row" style="display:none;padding-top:0.3rem;">
-        <span class="panel-total-label" style="font-size:0.75rem;">Shipping (J&T Express)</span>
-        <span style="font-size:0.86rem;color:var(--text-muted);" id="panel-shipping">₱0</span>
-      </div>
-      <div class="panel-total-row" style="border-top:1px solid var(--border);padding-top:0.6rem;margin-top:0.3rem;">
-        <span class="panel-total-label">Grand Total</span>
-        <span class="panel-total-amount" id="panel-total">₱0</span>
-      </div>
-    </div>
-
-    <div class="panel-section">
-      <div class="panel-section-title">
-        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        Order Information
-      </div>
-      <div class="panel-row"><span class="panel-key">Order ID</span><span class="panel-val mono" id="panel-ord-id">—</span></div>
-      <div class="panel-row"><span class="panel-key">Date Ordered</span><span class="panel-val" id="panel-ord-date-info">—</span></div>
-      <div class="panel-row"><span class="panel-key">Total Amount</span><span class="panel-val" id="panel-ord-total-info">—</span></div>
-      <div class="panel-row"><span class="panel-key">Order Status</span><span class="panel-val" id="panel-ord-status-badge">—</span></div>
-      <div class="panel-row"><span class="panel-key">GCash Ref #</span><span class="panel-val mono" id="panel-ord-ref">—</span></div>
-    </div>
-  </div>
-
-  <div class="panel-footer">
-    <div class="panel-footer-title">Update Fulfillment Status</div>
-    <div class="panel-status-group">
-      <label class="panel-status-label">Order Status</label>
-      <select class="panel-status-select" id="panel-ord-select">
-        <option value="Processing">Processing</option>
-        <option value="Shipping">Shipping</option>
-        <option value="Shipped">Shipped</option>
-        <option value="Completed">Completed</option>
-      </select>
-    </div>
-    <div class="panel-status-group" style="margin-top:0.75rem;">
-      <label class="panel-status-label">Admin Notes</label>
-      <textarea id="panel-admin-notes" placeholder="Internal notes about this order…"
-        style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:0.6rem 0.85rem;
-               font-family:'DM Sans',sans-serif;font-size:0.8rem;color:var(--text);background:var(--bg);
-               outline:none;resize:vertical;min-height:72px;transition:border-color 0.2s;line-height:1.55;"
-        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
-    </div>
-    <button class="btn-panel-save" id="save-status-btn" onclick="saveOrderStatus()">
-      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-      Save Changes
-    </button>
-    <div class="save-success-badge" id="save-success">
-      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-      Status updated successfully
-    </div>
-  </div>
-
-</aside>
 
 <script src="admin-data.js"></script>
 <script src="admin-layout.js?v=2"></script>
@@ -262,7 +61,6 @@ initAdminLayout('orders');
 checkAdminAuth();
 
 let currentOrderFilter = 'all';
-let currentOrderId     = null;
 
 fetchOrders(renderOrdersTable);
 
@@ -285,7 +83,7 @@ function renderOrdersTable(list) {
         <td>${orderStatusBadge(o.orderStatus)}</td>
         <td style="white-space:nowrap;">${date}</td>
         <td>
-          <button class="btn-view" onclick="openOrderPanel('${escAttr(o.id)}')">
+          <button class="btn-view" onclick="location.href='admin-order-detail.php?id=${escAttr(o.id)}&from=orders'">
             View Details
           </button>
         </td>
@@ -301,125 +99,10 @@ function filterOrders(status, btn) {
   renderOrdersTable(filtered);
 }
 
-function _refreshTable() {
-  const filtered = currentOrderFilter === 'all'
-    ? orders
-    : orders.filter(o => o.orderStatus === currentOrderFilter);
-  renderOrdersTable(filtered);
-}
-
-function openOrderPanel(orderId) {
-  const o = orders.find(x => String(x.id) === String(orderId));
-  if (!o) { showToast('Order not found.'); return; }
-  currentOrderId = orderId;
-
-  document.getElementById('panel-order-id').textContent  = `Order #${o.id}`;
-  document.getElementById('panel-order-date').textContent = o.dateOrdered ? 'Placed on ' + o.dateOrdered : '—';
-  document.getElementById('panel-cust-name').textContent    = o.user.name    || '—';
-  document.getElementById('panel-cust-email').textContent   = o.user.email   || '—';
-  document.getElementById('panel-cust-phone').textContent   = o.user.phone   || 'Not provided';
-  document.getElementById('panel-cust-address').textContent = o.user.address || 'Not provided';
-
-  document.getElementById('panel-products-list').innerHTML = (o.products || []).map(p => {
-    const img = p.coverImage || p.image || '';
-    return `
-      <div class="panel-product">
-        ${img ? `<img class="panel-product-img" src="${escHtml(img)}" alt="${escHtml(p.name)}" loading="lazy">` : `<div class="panel-product-img-placeholder"></div>`}
-        <div style="flex:1;min-width:0;">
-          <div class="panel-product-name">${escHtml(p.name)}</div>
-          <div class="panel-product-meta">Size: ${escHtml(p.size || '—')}</div>
-        </div>
-        <div class="panel-product-price">₱${Number(p.price).toLocaleString()}</div>
-      </div>`;
-  }).join('');
-  const shippingFee   = o.shippingFee || 0;
-  const itemsSubtotal = Number(o.totalAmount) - shippingFee;
-  document.getElementById('panel-subtotal').textContent = `₱${itemsSubtotal.toLocaleString()}`;
-  const shippingRow = document.getElementById('panel-shipping-row');
-  if (shippingFee > 0) {
-    document.getElementById('panel-shipping').textContent = `₱${shippingFee.toLocaleString()}`;
-    shippingRow.style.display = '';
-  } else {
-    shippingRow.style.display = 'none';
-  }
-  document.getElementById('panel-total').textContent           = `₱${Number(o.totalAmount).toLocaleString()}`;
-  document.getElementById('panel-ord-id').textContent          = o.id;
-  document.getElementById('panel-ord-date-info').textContent   = o.dateOrdered || '—';
-  document.getElementById('panel-ord-total-info').textContent  = `₱${Number(o.totalAmount).toLocaleString()}`;
-  document.getElementById('panel-ord-status-badge').innerHTML  = orderStatusBadge(o.orderStatus);
-  document.getElementById('panel-ord-ref').textContent         = o.payment?.referenceNumber || '—';
-  document.getElementById('panel-ord-select').value            = o.orderStatus;
-  document.getElementById('panel-admin-notes').value           = o.adminNotes || '';
-
-  _resetSaveBtn();
-  document.getElementById('panel-overlay').classList.add('open');
-  document.getElementById('order-panel').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeOrderPanel() {
-  document.getElementById('panel-overlay').classList.remove('open');
-  document.getElementById('order-panel').classList.remove('open');
-  document.body.style.overflow = '';
-  currentOrderId = null;
-}
-
-function closePanelFromOverlay(e) {
-  if (e.target === document.getElementById('panel-overlay')) closeOrderPanel();
-}
-
-async function saveOrderStatus() {
-  const o = orders.find(x => String(x.id) === String(currentOrderId));
-  if (!o) return;
-
-  const newOrdStatus  = document.getElementById('panel-ord-select').value;
-  const adminNotes    = document.getElementById('panel-admin-notes').value.trim();
-  const btn = document.getElementById('save-status-btn');
-  btn.disabled  = true;
-  btn.innerHTML = '<svg viewBox="0 0 24 24" style="animation:spin 0.8s linear infinite"><polyline points="20 6 9 17 4 12"/></svg> Saving…';
-
-  try {
-    const data = await updateOrderStatus(currentOrderId, newOrdStatus, '', '', adminNotes);
-    if (data.error) { showToast(data.error); _resetSaveBtn(); return; }
-
-    o.orderStatus  = newOrdStatus;
-    o.adminNotes   = adminNotes;
-    document.getElementById('panel-ord-status-badge').innerHTML = orderStatusBadge(newOrdStatus);
-    _refreshTable();
-
-    btn.disabled  = false;
-    btn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Save Changes';
-    const badge = document.getElementById('save-success');
-    badge.classList.add('show');
-    setTimeout(() => badge.classList.remove('show'), 3000);
-
-  } catch(err) {
-    showToast('Failed to update status. Please try again.');
-    console.error(err);
-    _resetSaveBtn();
-  }
-}
-
-function _resetSaveBtn() {
-  const btn = document.getElementById('save-status-btn');
-  btn.disabled  = false;
-  btn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Save Changes';
-  document.getElementById('save-success').classList.remove('show');
-}
-
 function escHtml(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 function escAttr(s) { return String(s ?? '').replace(/'/g, '&#39;'); }
-
-document.addEventListener('keydown', e => {
-  if (e.key !== 'Escape') return;
-  if (document.getElementById('order-panel').classList.contains('open')) closeOrderPanel();
-});
-
-const style = document.createElement('style');
-style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
-document.head.appendChild(style);
 </script>
 </body>
 </html>
