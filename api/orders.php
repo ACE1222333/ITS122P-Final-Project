@@ -145,11 +145,45 @@ if ($method === 'POST') {
     }
 
     if (empty($items))    respondError('Order must contain at least one item.');
-    if ($totalAmount <= 0) respondError('Invalid total amount.');
     if ($refNumber === '') respondError('GCash reference number is required.');
     if ($address === '')   respondError('Delivery address is required.');
 
     $db = getDB();
+
+    /* ── Authoritative pricing: load DB prices, ignore client totals ── */
+    $productIds = array_map('intval', array_column($items, 'product_id'));
+    if (empty($productIds)) respondError('Order must contain at least one item.');
+
+    $ph      = implode(',', array_fill(0, count($productIds), '?'));
+    $priceRows = $db->prepare("SELECT product_id, price, status FROM products WHERE product_id IN ($ph)");
+    $priceRows->execute($productIds);
+    $priceMap = [];
+    foreach ($priceRows->fetchAll() as $row) {
+        $priceMap[(int)$row['product_id']] = ['price' => (float)$row['price'], 'status' => $row['status']];
+    }
+
+    /* Reject if any product is unavailable or not found */
+    foreach ($productIds as $pid) {
+        if (!isset($priceMap[$pid]))                      respondError("Product #$pid not found.");
+        if ($priceMap[$pid]['status'] !== 'available')    respondError("One or more items are no longer available.");
+    }
+
+    /* Replace client-supplied prices with DB prices */
+    $serverSubtotal = 0;
+    foreach ($items as &$item) {
+        $pid              = (int)$item['product_id'];
+        $item['price']    = $priceMap[$pid]['price'];
+        $serverSubtotal  += $priceMap[$pid]['price'];
+    }
+    unset($item);
+
+    /* Validate shipping fee is one of the four known J&T tiers */
+    $allowedFees = [70, 100, 130, 160];
+    $shippingFee = (int)$shippingFee;
+    if (!in_array($shippingFee, $allowedFees, true)) respondError('Invalid shipping fee.');
+
+    /* Authoritative total — never trust the client-supplied total_amount */
+    $totalAmount = $serverSubtotal + $shippingFee;
 
     /* Auto-migrate shipping_fee column */
     try {
@@ -167,18 +201,47 @@ if ($method === 'POST') {
         }
     } catch (Throwable $e) { /* ignore */ }
 
+    /* Auto-migrate reservation_expires_at column */
+    try {
+        $chk = $db->query("SHOW COLUMNS FROM orders LIKE 'reservation_expires_at'");
+        if ($chk->rowCount() === 0) {
+            $db->exec("ALTER TABLE orders ADD COLUMN reservation_expires_at DATETIME NULL");
+        }
+    } catch (Throwable $e) { /* ignore */ }
+
+    /* Ensure products.status ENUM includes 'reserved' (migrate_reservation.sql may not have run) */
+    try {
+        $col = $db->query("SHOW COLUMNS FROM products LIKE 'status'")->fetch();
+        if ($col && strpos($col['Type'], "'reserved'") === false) {
+            $db->exec("ALTER TABLE products MODIFY COLUMN status ENUM('available','reserved','sold') NOT NULL DEFAULT 'available'");
+        }
+    } catch (Throwable $e) { /* ignore */ }
+
     $db->beginTransaction();
 
     try {
-        /* Insert order — status is Pending Payment until admin approves.
-           Order items are NOT created yet; they are stored as JSON and
-           inserted only when the payment is approved. */
+        /* Insert order with a 24-hour reservation window */
         $ordStmt = $db->prepare(
-            "INSERT INTO orders (user_id, total_amount, shipping_fee, items_json, status)
-             VALUES (?, ?, ?, ?, 'Pending Payment')"
+            "INSERT INTO orders (user_id, total_amount, shipping_fee, items_json, status, reservation_expires_at)
+             VALUES (?, ?, ?, ?, 'Pending Payment', DATE_ADD(NOW(), INTERVAL 24 HOUR))"
         );
         $ordStmt->execute([$user['user_id'], $totalAmount, $shippingFee, json_encode($items)]);
         $orderId = (int)$db->lastInsertId();
+
+        /* Reserve each product atomically — fail immediately if any were grabbed concurrently */
+        $reserveStmt = $db->prepare(
+            "UPDATE products SET status = 'reserved' WHERE product_id = ? AND status = 'available'"
+        );
+        $itmStmt = $db->prepare('INSERT INTO order_items (order_id, product_id, price) VALUES (?, ?, ?)');
+        foreach ($items as $item) {
+            $pid   = (int)$item['product_id'];
+            $price = (float)$item['price'];
+            $reserveStmt->execute([$pid]);
+            if ($reserveStmt->rowCount() === 0) {
+                throw new RuntimeException("One or more items were just claimed by another buyer. Please remove them from your cart and try again.");
+            }
+            $itmStmt->execute([$orderId, $pid, $price]);
+        }
 
         /* Insert payment */
         $payStmt = $db->prepare(

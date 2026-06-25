@@ -1,0 +1,169 @@
+/* ── Stat grid ── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.stat-grid.three {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.4rem 1.4rem 1.2rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.stat-value {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 2.4rem;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  color: var(--text);
+}
+.stat-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+.stat-badge {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.18rem 0.55rem;
+  border-radius: 20px;
+}
+.stat-badge.urgent {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--red);
+}
+.stat-badge.info {
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--blue);
+}
+
+/* ── Section label ── */
+.dash-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 1.6rem 0 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.dash-section-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Pending orders mini-table ── */
+.pending-table-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.pending-table-head {
+  display: grid;
+  grid-template-columns: 80px 1fr 100px 100px 120px;
+  gap: 0.5rem;
+  padding: 0.65rem 1.2rem;
+  background: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.pending-table-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 100px 100px 120px;
+  gap: 0.5rem;
+  padding: 0.8rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.82rem;
+  align-items: center;
+  transition: background 0.15s;
+}
+.pending-table-row:last-child {
+  border-bottom: none;
+}
+.pending-table-row:hover {
+  background: var(--bg);
+}
+.pending-id {
+  font-family: "DM Sans", sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+.pending-ref {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+.pending-empty {
+  padding: 2.5rem;
+  text-align: center;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.btn-review-go {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.32rem 0.75rem;
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: opacity 0.2s;
+}
+.btn-review-go:hover {
+  opacity: 0.82;
+}
+
+/* ── Loading skeleton ── */
+.stat-value.loading {
+  background: var(--bg-section);
+  color: transparent;
+  border-radius: 4px;
+  animation: shimmer 1.2s ease infinite;
+}
+@keyframes shimmer {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}

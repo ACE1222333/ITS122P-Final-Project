@@ -6,6 +6,9 @@ require_once __DIR__ . '/config.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') respondError('Method not allowed.', 405);
 
+/* Prevent browsers from caching the product list — statuses change in real time */
+header('Cache-Control: no-store, no-cache, must-revalidate');
+
 try {
     $db = getDB();
 

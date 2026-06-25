@@ -1,11 +1,3 @@
-﻿/* ════════════════════════════════════════════════════════════════
-   shop-layout.js — Injects the shared nav, overlays, and footer
-   into every shop page.
-
-   Call: initShopLayout('pageId')
-   pageId values: 'home' | 'shop' | 'reviews' | 'about' | 'contacts' | 'payment'
-════════════════════════════════════════════════════════════════ */
-
 function initShopLayout(activePageId) {
   _injectAdminBar();
   _injectNav(activePageId);
@@ -28,56 +20,62 @@ function initShopLayout(activePageId) {
   /* Nothing needed here — My Orders opens directly from the payment page */
 
   // Close dropdown when clicking anywhere outside it
-  document.addEventListener('click', function(e) {
-    const pill     = document.getElementById('nav-auth-user');
-    const dropdown = document.getElementById('user-dropdown');
+  document.addEventListener("click", function (e) {
+    const pill = document.getElementById("nav-auth-user");
+    const dropdown = document.getElementById("user-dropdown");
     if (!pill || !dropdown) return;
     if (!pill.contains(e.target)) {
-      dropdown.classList.remove('open');
-      pill.classList.remove('open');
+      dropdown.classList.remove("open");
+      pill.classList.remove("open");
     }
   });
 }
 
-/* ── ADMIN BAR ─────────────────────────────────────────────────── */
+// ADMIN BAR
 function _injectAdminBar() {
-  const bar = document.createElement('div');
-  bar.className = 'admin-bar';
-  bar.id = 'admin-bar';
+  const bar = document.createElement("div");
+  bar.className = "admin-bar";
+  bar.id = "admin-bar";
   bar.innerHTML = `
-    <a class="admin-bar-back" onclick="sessionStorage.removeItem('bythebel_admin_preview'); window.location.href='admin.php'">
+    <a class="admin-bar-back" onclick="sessionStorage.removeItem('buythebella_admin_preview'); window.location.href='admin.php'">
       ← Back to Admin
     </a>`;
   document.body.prepend(bar);
   checkAdminPreviewMode();
 }
 
-/* ── NAV ───────────────────────────────────────────────────────── */
+// NAV
 function _injectNav(activePageId) {
   const pages = [
-    { id:'home',     label:'Home',     href:'shop.php' },
-    { id:'shop',     label:'Shop',     href:'shop-products.php' },
-    { id:'reviews',  label:'Reviews',  href:'shop-reviews.php' },
-    { id:'about',    label:'About',    href:'shop-about.php' },
-    { id:'contacts', label:'Contacts', href:'shop-contacts.php' },
-    { id:'faq',      label:'FAQ',      href:'shop-faq.php' },
+    { id: "home", label: "Home", href: "shop.php" },
+    { id: "shop", label: "Shop", href: "shop-products.php" },
+    { id: "about", label: "About", href: "shop-about.php" },
+    { id: "reviews", label: "Reviews", href: "shop-reviews.php" },
+    { id: "faq", label: "FAQ", href: "shop-faq.php" },
+    { id: "contacts", label: "Contact", href: "shop-contacts.php" },
   ];
 
-  const desktopLinks = pages.map(p =>
-    `<li class="nav-item">
-       <a id="nav-${p.id}" class="nav-link${p.id===activePageId?' active':''}" href="${p.href}">${p.label}</a>
-     </li>`
-  ).join('');
+  const desktopLinks = pages
+    .map(
+      (p) =>
+        `<li class="nav-item">
+       <a id="nav-${p.id}" class="nav-link${p.id === activePageId ? " active" : ""}" href="${p.href}">${p.label}</a>
+     </li>`,
+    )
+    .join("");
 
-  const drawerLinks = pages.map(p =>
-    `<li>
-       <a class="drawer-link${p.id===activePageId?' active':''}" href="${p.href}" onclick="closeMobileDrawer()">${p.label}</a>
-     </li>`
-  ).join('');
+  const drawerLinks = pages
+    .map(
+      (p) =>
+        `<li>
+       <a class="drawer-link${p.id === activePageId ? " active" : ""}" href="${p.href}" onclick="closeMobileDrawer()">${p.label}</a>
+     </li>`,
+    )
+    .join("");
 
-  const nav = document.createElement('nav');
-  nav.id = 'main-nav';
-  nav.className = 'navbar fixed-top';
+  const nav = document.createElement("nav");
+  nav.id = "main-nav";
+  nav.className = "navbar fixed-top";
   nav.innerHTML = `
     <div class="container-fluid px-4 nav-inner">
 
@@ -91,7 +89,7 @@ function _injectNav(activePageId) {
       </button>
 
       <!-- Brand: left on desktop, absolute-centered on mobile -->
-      <a class="navbar-brand" href="shop.php">ByTheBel</a>
+      <a class="navbar-brand" href="shop.php">BuyTheBella</a>
 
       <!-- Nav links: visible on desktop, hidden on mobile -->
       <ul class="navbar-nav desktop-nav-links">${desktopLinks}</ul>
@@ -152,11 +150,13 @@ function _injectNav(activePageId) {
   document.body.prepend(nav);
 
   /* Mobile drawer */
-  document.body.insertAdjacentHTML('beforeend', `
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
     <div class="mobile-drawer-overlay" id="mobile-drawer-overlay" onclick="closeMobileDrawer()"></div>
     <div class="mobile-drawer" id="mobile-drawer">
       <div class="mobile-drawer-head">
-        <span class="mobile-drawer-brand">ByTheBel</span>
+        <span class="mobile-drawer-brand">BuyTheBella</span>
         <button class="mobile-drawer-close" onclick="closeMobileDrawer()" aria-label="Close menu">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -164,39 +164,42 @@ function _injectNav(activePageId) {
         </button>
       </div>
       <ul class="mobile-drawer-links">${drawerLinks}</ul>
-    </div>`);
+    </div>`,
+  );
 }
 
 function toggleMobileReviewForm() {
-  const panel = document.getElementById('mobile-review-form-panel');
-  const btn   = document.getElementById('mobile-write-review-btn');
+  const panel = document.getElementById("mobile-review-form-panel");
+  const btn = document.getElementById("mobile-write-review-btn");
   if (!panel) return;
-  const isOpen = panel.classList.toggle('open');
-  if (btn) btn.classList.toggle('active', isOpen);
+  const isOpen = panel.classList.toggle("open");
+  if (btn) btn.classList.toggle("active", isOpen);
 }
 
 function toggleMobileDrawer() {
-  const drawer  = document.getElementById('mobile-drawer');
-  const overlay = document.getElementById('mobile-drawer-overlay');
-  const isOpen  = drawer.classList.contains('open');
+  const drawer = document.getElementById("mobile-drawer");
+  const overlay = document.getElementById("mobile-drawer-overlay");
+  const isOpen = drawer.classList.contains("open");
   if (isOpen) {
     closeMobileDrawer();
   } else {
-    drawer.classList.add('open');
-    overlay.classList.add('open');
-    document.body.style.overflow = 'hidden';
+    drawer.classList.add("open");
+    overlay.classList.add("open");
+    document.body.style.overflow = "hidden";
   }
 }
 
 function closeMobileDrawer() {
-  document.getElementById('mobile-drawer')?.classList.remove('open');
-  document.getElementById('mobile-drawer-overlay')?.classList.remove('open');
-  document.body.style.overflow = '';
+  document.getElementById("mobile-drawer")?.classList.remove("open");
+  document.getElementById("mobile-drawer-overlay")?.classList.remove("open");
+  document.body.style.overflow = "";
 }
 
-/* ── PRODUCT MODAL ─────────────────────────────────────────────── */
+// PRODUCT MODAL
 function _injectProductModal() {
-  document.body.insertAdjacentHTML('beforeend', `
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
     <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
       <div class="modal" id="modal">
         <button class="modal-back" onclick="closeModal()">
@@ -242,55 +245,63 @@ function _injectProductModal() {
           </div>
         </div>
       </div>
-    </div>`);
+    </div>`,
+  );
 }
 
-/* ── IMAGE LIGHTBOX ────────────────────────────────────────────── */
+// IMAGE LIGHTBOX
 function _injectImgLightbox() {
-  document.body.insertAdjacentHTML('beforeend', `
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
     <div id="img-lightbox" class="img-lightbox" onclick="closeImgLightbox()">
       <button class="img-lightbox-close" onclick="closeImgLightbox()" title="Close">&#x2715;</button>
       <button class="img-lightbox-arrow left"  onclick="lightboxPrev(event)" title="Previous">&#8249;</button>
       <img id="img-lightbox-img" src="" alt="" onclick="event.stopPropagation()">
       <button class="img-lightbox-arrow right" onclick="lightboxNext(event)" title="Next">&#8250;</button>
-    </div>`);
+    </div>`,
+  );
 
-  document.addEventListener('keydown', e => {
-    const lb = document.getElementById('img-lightbox');
-    if (!lb || !lb.classList.contains('open')) return;
-    if (e.key === 'Escape')     closeImgLightbox();
-    if (e.key === 'ArrowLeft')  lightboxPrev(e);
-    if (e.key === 'ArrowRight') lightboxNext(e);
+  document.addEventListener("keydown", (e) => {
+    const lb = document.getElementById("img-lightbox");
+    if (!lb || !lb.classList.contains("open")) return;
+    if (e.key === "Escape") closeImgLightbox();
+    if (e.key === "ArrowLeft") lightboxPrev(e);
+    if (e.key === "ArrowRight") lightboxNext(e);
   });
 }
 
 function openImgLightbox() {
-  const src = document.getElementById('modal-img-main')?.src;
+  const src = document.getElementById("modal-img-main")?.src;
   if (!src) return;
-  const lb = document.getElementById('img-lightbox');
-  document.getElementById('img-lightbox-img').src = src;
-  lb.classList.add('open');
+  const lb = document.getElementById("img-lightbox");
+  document.getElementById("img-lightbox-img").src = src;
+  lb.classList.add("open");
 }
 
 function closeImgLightbox() {
-  document.getElementById('img-lightbox')?.classList.remove('open');
+  document.getElementById("img-lightbox")?.classList.remove("open");
 }
 
 function lightboxPrev(e) {
   e.stopPropagation();
   galleryPrev(e);
-  document.getElementById('img-lightbox-img').src = document.getElementById('modal-img-main').src;
+  document.getElementById("img-lightbox-img").src =
+    document.getElementById("modal-img-main").src;
 }
 
 function lightboxNext(e) {
   e.stopPropagation();
   galleryNext(e);
-  document.getElementById('img-lightbox-img').src = document.getElementById('modal-img-main').src;
+  document.getElementById("img-lightbox-img").src =
+    document.getElementById("modal-img-main").src;
 }
 
-/* ── CART DRAWER ───────────────────────────────────────────────── */
+// CART DRAWER
 function _injectCartDrawer() {
-  document.body.insertAdjacentHTML('beforeend', `
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
     <div class="cart-drawer-overlay" id="cart-overlay" onclick="closeCart()"></div>
     <div class="cart-drawer" id="cart-drawer">
       <div class="cart-drawer-head">
@@ -311,12 +322,15 @@ function _injectCartDrawer() {
           <a href="#" onclick="closeCart();openAuth();" style="color:inherit;text-decoration:underline;">Log in</a> to place an order.
         </p>
       </div>
-    </div>`);
+    </div>`,
+  );
 }
 
-/* ── AUTH MODAL ────────────────────────────────────────────────── */
+// AUTH MODAL
 function _injectAuthModal() {
-  document.body.insertAdjacentHTML('beforeend', `
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
     <div class="auth-overlay" id="auth-overlay" onclick="closeAuthOutside(event)">
       <div class="auth-box">
         <button class="auth-close" onclick="closeAuth()">✕</button>
@@ -391,12 +405,15 @@ function _injectAuthModal() {
           <button class="btn-auth" onclick="doRegister()">Create account</button>
         </div>
       </div>
-    </div>`);
+    </div>`,
+  );
 }
 
-/* ── EDIT PROFILE MODAL ────────────────────────────────────────── */
+// EDIT PROFILE MODAL
 function _injectEditProfileModal() {
-  document.body.insertAdjacentHTML('beforeend', `
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
     <div class="profile-modal-overlay" id="profile-modal-overlay" onclick="closeProfileOutside(event)">
       <div class="profile-modal" id="profile-modal">
 
@@ -464,12 +481,15 @@ function _injectEditProfileModal() {
         </div>
 
       </div>
-    </div>`);
+    </div>`,
+  );
 }
 
-/* ── MY ORDERS PANEL ───────────────────────────────────────────── */
+// MY ORDERS PANEL
 function _injectOrdersPanel() {
-  document.body.insertAdjacentHTML('beforeend', `
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
     <div class="orders-panel" id="orders-panel">
 
       <!-- Sub-header: title + tabs. The original site navbar stays above this. -->
@@ -498,12 +518,15 @@ function _injectOrdersPanel() {
         </div>
       </div>
 
-    </div>`);
+    </div>`,
+  );
 }
 
-/* ── PRODUCT REVIEW MODAL ──────────────────────────────────────── */
+// PRODUCT REVIEW MODAL
 function _injectReviewModal() {
-  document.body.insertAdjacentHTML('beforeend', `
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
     <div class="review-modal-overlay" id="review-modal-overlay" onclick="closeReviewModalOutside(event)">
       <div class="review-modal" id="review-modal">
 
@@ -558,59 +581,89 @@ function _injectReviewModal() {
         </div>
 
       </div>
-    </div>`);
+    </div>`,
+  );
 }
 
-/* ── PROMO STRIP ───────────────────────────────────────────────── */
+// PROMO STRIP
 function _injectPromoStrip() {
-  if (document.querySelector('.promo-strip')) return;
-  document.body.insertAdjacentHTML('beforeend', `
+  if (document.querySelector(".promo-strip")) return;
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
     <div class="promo-strip">
       <h2>Pre-Loved Style,<br>Zero Compromise</h2>
-      <p>Each item is hand-picked, cleaned, and quality-checked. When you shop ByTheBel, you give clothes a second life — and your wardrobe something unique.</p>
+      <p>Each item is hand-picked, cleaned, and quality-checked. When you shop BuyTheBella, you give clothes a second life — and your wardrobe something unique.</p>
       <button class="btn-outline" onclick="window.location.href='shop-about.php'">Our Story</button>
-    </div>`);
+    </div>`,
+  );
 }
 
-/* ── FOOTER ────────────────────────────────────────────────────── */
+// FOOTER
 function _injectFooter() {
   /* Skip if the page already has a footer in the HTML */
-  if (document.querySelector('footer')) return;
-  document.body.insertAdjacentHTML('beforeend', `
+  if (document.querySelector("footer")) return;
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
     <footer>
-      <span>© 2025 ByTheBel. All rights reserved.</span>
+      <span>© 2025 BuyTheBella. All rights reserved.</span>
       <span style="margin-left:1.5rem;">
         <a href="shop-terms.php" style="color:inherit;opacity:0.6;font-size:0.78rem;text-decoration:none;"
            onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">Terms &amp; Privacy</a>
       </span>
-    </footer>`);
+    </footer>`,
+  );
 }
 
-/* ── TOAST ─────────────────────────────────────────────────────── */
+// TOAST
 function _injectToast() {
-  document.body.insertAdjacentHTML('beforeend', `<div class="toast" id="toast"></div>`);
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `<div class="toast" id="toast"></div>`,
+  );
 }
 
-/* ── THEME (light / dark) ──────────────────────────────────────── */
+// THEME (light / dark)
 function _applyTheme(dark) {
-  document.body.classList.toggle('dark', dark);
+  document.body.classList.toggle("dark", dark);
+  document.body.classList.toggle(
+    "light",
+    !dark,
+  ); /* explicit override for CSS media query */
   /* Sync Bootstrap's theme so navbar, offcanvas, forms & cards go dark too */
-  document.documentElement.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
-  const moon = document.getElementById('theme-icon-moon');
-  const sun  = document.getElementById('theme-icon-sun');
-  if (moon) moon.style.display = dark ? 'none'  : '';
-  if (sun)  sun.style.display  = dark ? ''      : 'none';
+  document.documentElement.setAttribute(
+    "data-bs-theme",
+    dark ? "dark" : "light",
+  );
+  const moon = document.getElementById("theme-icon-moon");
+  const sun = document.getElementById("theme-icon-sun");
+  if (moon) moon.style.display = dark ? "none" : "";
+  if (sun) sun.style.display = dark ? "" : "none";
 }
 
 function toggleTheme() {
-  const isDark = !document.body.classList.contains('dark');
-  localStorage.setItem('bythebel_theme', isDark ? 'dark' : 'light');
+  const isDark = !document.body.classList.contains("dark");
+  localStorage.setItem("buythebella_theme", isDark ? "dark" : "light");
   _applyTheme(isDark);
 }
 
-/* Apply saved theme immediately on load */
-(function() {
-  const saved = localStorage.getItem('bythebel_theme');
-  if (saved === 'dark') _applyTheme(true);
+/* Apply saved theme immediately on load; fall back to system preference */
+(function () {
+  const saved = localStorage.getItem("buythebella_theme");
+  if (saved) {
+    _applyTheme(saved === "dark");
+  } else {
+    /* No explicit choice — respect prefers-color-scheme */
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
+    _applyTheme(prefersDark);
+    /* Also watch for live system-preference changes */
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", (e) => {
+        if (!localStorage.getItem("buythebella_theme")) _applyTheme(e.matches);
+      });
+  }
 })();
-

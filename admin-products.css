@@ -1,0 +1,76 @@
+/* ── Filter bar ── */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 1.2rem;
+}
+.filter-select {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 0.55rem 0.85rem;
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.8rem;
+  color: var(--text);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+  min-width: 140px;
+}
+.filter-select:focus {
+  border-color: var(--accent);
+}
+.filter-select.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+.filter-clear-btn {
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 0.55rem 0.85rem;
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.filter-clear-btn:hover {
+  background: var(--bg-section);
+  color: var(--text);
+}
+
+/* ── Status badge extras ── */
+.badge-available {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+.badge-reserved {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+.badge-sold {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+/* ── Sold row styling ── */
+tr.row-sold td {
+  opacity: 0.55;
+}
+tr.row-sold td:first-child {
+  opacity: 1;
+}
+.sold-actions-note {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-style: italic;
+}

@@ -4,107 +4,110 @@ include('connection.php');
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop — ByTheBel</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-<link rel="stylesheet" href="shop-styles.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shop — BuyTheBella</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="shop-styles.css" />
+  </head>
+  <body>
+    <!-- Nav, modal, cart, auth, toast injected by shop-layout.js -->
 
-<!-- Nav, modal, cart, auth, toast injected by shop-layout.js -->
-
-<!-- Mobile filter button -->
-<div class="d-lg-none px-3 pt-3">
-  <button class="btn btn-sm btn-outline-secondary w-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterOffcanvas">
-    <i class="bi bi-funnel me-1"></i> Filters
-  </button>
-</div>
-
-<div class="shop-layout">
-  <!-- Filters: a normal sidebar on desktop, a slide-in drawer on mobile (offcanvas-lg) -->
-  <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="filterOffcanvas">
-    <div class="offcanvas-header d-lg-none border-bottom">
-      <h5 class="offcanvas-title mb-0" style="font-family:'Bebas Neue',sans-serif;letter-spacing:.08em;">Filters</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#filterOffcanvas"></button>
+    <!-- Mobile filter button -->
+    <div class="d-lg-none px-3 pt-3">
+      <button class="btn btn-sm btn-outline-secondary w-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterOffcanvas"><i class="bi bi-funnel me-1"></i> Filters</button>
     </div>
-    <div class="offcanvas-body d-block" style="padding:0;">
-      <div class="sidebar-title d-none d-lg-block">Filters</div>
-      <div class="filter-section">
-        <h4>Category</h4>
-        <div id="category-filters"><div class="filter-loading">Loading…</div></div>
-        <span class="filter-clear" onclick="clearCategoryFilter()">Clear categories</span>
-      </div>
-      <div class="filter-section">
-        <h4>Condition</h4>
-        <div id="condition-filters">
-          <div class="filter-item"><input type="checkbox" id="cond-brand-new"    data-condition="Brand new"    onchange="applyFiltersAndSort()"><label for="cond-brand-new">Brand new</label></div>
-          <div class="filter-item"><input type="checkbox" id="cond-like-new"     data-condition="Like new"     onchange="applyFiltersAndSort()"><label for="cond-like-new">Like new</label></div>
-          <div class="filter-item"><input type="checkbox" id="cond-lightly-used" data-condition="Lightly used" onchange="applyFiltersAndSort()"><label for="cond-lightly-used">Lightly used</label></div>
-          <div class="filter-item"><input type="checkbox" id="cond-well-used"    data-condition="Well used"    onchange="applyFiltersAndSort()"><label for="cond-well-used">Well used</label></div>
-          <div class="filter-item"><input type="checkbox" id="cond-heavily-used" data-condition="Heavily used" onchange="applyFiltersAndSort()"><label for="cond-heavily-used">Heavily used</label></div>
+
+    <div class="shop-layout">
+      <!-- Filters: a normal sidebar on desktop, a slide-in drawer on mobile (offcanvas-lg) -->
+      <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="filterOffcanvas">
+        <div class="offcanvas-header d-lg-none border-bottom">
+          <h5 class="offcanvas-title mb-0" style="font-family: &quot;Bebas Neue&quot;, sans-serif; letter-spacing: 0.08em">Filters</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#filterOffcanvas"></button>
         </div>
-        <span class="filter-clear" onclick="clearConditionFilter()">Clear conditions</span>
-      </div>
-      <div class="filter-section">
-        <h4>Price Range</h4>
-        <div class="filter-item"><input type="checkbox" id="p1" onchange="applyFiltersAndSort()"><label for="p1">Under ₱200</label></div>
-        <div class="filter-item"><input type="checkbox" id="p2" onchange="applyFiltersAndSort()"><label for="p2">₱200 – ₱500</label></div>
-        <div class="filter-item"><input type="checkbox" id="p3" onchange="applyFiltersAndSort()"><label for="p3">₱500 – ₱1,000</label></div>
-        <div class="filter-item"><input type="checkbox" id="p4" onchange="applyFiltersAndSort()"><label for="p4">₱1,000+</label></div>
-        <span class="filter-clear" onclick="clearPriceFilter()">Clear prices</span>
-      </div>
+        <div class="offcanvas-body d-block" style="padding: 0">
+          <div class="sidebar-title d-none d-lg-block">Filters</div>
+          <div class="filter-section">
+            <h4>Category</h4>
+            <div id="category-filters"><div class="filter-loading">Loading…</div></div>
+            <span class="filter-clear" onclick="clearCategoryFilter()">Clear categories</span>
+          </div>
+          <div class="filter-section">
+            <h4>Condition</h4>
+            <div id="condition-filters">
+              <div class="filter-item"><input type="checkbox" id="cond-brand-new" data-condition="Brand new" onchange="applyFiltersAndSort()" /><label for="cond-brand-new">Brand new</label></div>
+              <div class="filter-item"><input type="checkbox" id="cond-like-new" data-condition="Like new" onchange="applyFiltersAndSort()" /><label for="cond-like-new">Like new</label></div>
+              <div class="filter-item"><input type="checkbox" id="cond-lightly-used" data-condition="Lightly used" onchange="applyFiltersAndSort()" /><label for="cond-lightly-used">Lightly used</label></div>
+              <div class="filter-item"><input type="checkbox" id="cond-well-used" data-condition="Well used" onchange="applyFiltersAndSort()" /><label for="cond-well-used">Well used</label></div>
+              <div class="filter-item"><input type="checkbox" id="cond-heavily-used" data-condition="Heavily used" onchange="applyFiltersAndSort()" /><label for="cond-heavily-used">Heavily used</label></div>
+            </div>
+            <span class="filter-clear" onclick="clearConditionFilter()">Clear conditions</span>
+          </div>
+          <div class="filter-section">
+            <h4>Price Range</h4>
+            <div class="filter-item"><input type="checkbox" id="p1" onchange="applyFiltersAndSort()" /><label for="p1">Under ₱200</label></div>
+            <div class="filter-item"><input type="checkbox" id="p2" onchange="applyFiltersAndSort()" /><label for="p2">₱200 – ₱500</label></div>
+            <div class="filter-item"><input type="checkbox" id="p3" onchange="applyFiltersAndSort()" /><label for="p3">₱500 – ₱1,000</label></div>
+            <div class="filter-item"><input type="checkbox" id="p4" onchange="applyFiltersAndSort()" /><label for="p4">₱1,000+</label></div>
+            <span class="filter-clear" onclick="clearPriceFilter()">Clear prices</span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="shop-content">
+        <div class="content-header">
+          <h2>Shop</h2>
+          <select class="sort-select" id="sort-select" onchange="applyFiltersAndSort()">
+            <option value="default">Sort: Featured</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="name">Name A–Z</option>
+          </select>
+        </div>
+        <div class="product-grid" id="product-grid">
+          <div class="loading-state">Loading products…</div>
+        </div>
+      </main>
     </div>
-  </aside>
 
-  <main class="shop-content">
-    <div class="content-header">
-      <h2>Shop</h2>
-      <select class="sort-select" id="sort-select" onchange="applyFiltersAndSort()">
-        <option value="default">Sort: Featured</option>
-        <option value="price-asc">Price: Low to High</option>
-        <option value="price-desc">Price: High to Low</option>
-        <option value="name">Name A–Z</option>
-      </select>
-    </div>
-    <div class="product-grid" id="product-grid">
-      <div class="loading-state">Loading products…</div>
-    </div>
-  </main>
-</div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="shop-shared.js?v=3"></script>
+    <script src="shop-cart.js"></script>
+    <script src="shop-auth.js"></script>
+    <script src="shop-orders.js"></script>
+    <script src="shop-reviews-modal.js"></script>
+    <script src="shop-payment-form.js"></script>
+    <script src="shop-layout.js"></script>
+    <script>
+      initShopLayout("shop");
 
+      /* â”€â”€ RENDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+      function renderProducts(list) {
+        const grid = document.getElementById("product-grid");
+        grid.innerHTML = "";
+        if (!list.length) {
+          grid.innerHTML = '<div class="loading-state">No products match your filters.</div>';
+          return;
+        }
+        const inCart = new Set(cart.map((c) => c.product.id));
+        list.forEach((p, i) => {
+          const inCartItem = inCart.has(p.id);
+          const isSold = p.status === "sold";
+          const isReserved = p.status === "reserved";
+          const isUnavailable = isSold || isReserved || inCartItem;
 
+          let overlayHtml = "";
+          if (inCartItem) overlayHtml = '<div class="sold-overlay"><div class="cart-stamp">In Cart</div></div>';
+          else if (isSold) overlayHtml = '<div class="sold-overlay"><div class="sold-stamp">Sold</div></div>';
+          else if (isReserved) overlayHtml = '<div class="sold-overlay"><div class="reserved-stamp">Reserved</div></div>';
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="shop-shared.js?v=2"></script>
-<script src="shop-layout.js"></script>
-<script>
-initShopLayout('shop');
-
-/* â”€â”€ RENDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-function renderProducts(list) {
-  const grid = document.getElementById('product-grid');
-  grid.innerHTML = '';
-  if (!list.length) { grid.innerHTML = '<div class="loading-state">No products match your filters.</div>'; return; }
-  const inCart = new Set(cart.map(c => c.product.id));
-  list.forEach((p, i) => {
-    const inCartItem = inCart.has(p.id);
-    const isSold     = p.status === 'sold';
-    const isReserved = p.status === 'reserved';
-    const isUnavailable = isSold || isReserved || inCartItem;
-
-    let overlayHtml = '';
-    if (inCartItem)    overlayHtml = '<div class="sold-overlay"><div class="sold-stamp">In Cart</div></div>';
-    else if (isSold)   overlayHtml = '<div class="sold-overlay"><div class="sold-stamp">Sold</div></div>';
-    else if (isReserved) overlayHtml = '<div class="sold-overlay"><div class="reserved-stamp">Reserved</div></div>';
-
-    const card = document.createElement('div');
-    card.className = 'product-card';
-    card.style.animationDelay = (i * 0.04) + 's';
-    card.innerHTML = `
+          const card = document.createElement("div");
+          card.className = "product-card";
+          card.style.animationDelay = i * 0.04 + "s";
+          card.innerHTML = `
       <div class="product-img">
         <img src="${getCoverImage(p)}" alt="${p.name}" loading="lazy">
       </div>
@@ -114,68 +117,93 @@ function renderProducts(list) {
           <div class="product-name">${p.name}</div>
           <div class="product-price-display">₱${p.price.toLocaleString()}</div>
         </div>
-        ${p.condition ? `<div class="product-condition-label">${p.condition}</div>` : ''}
+        ${p.condition ? `<div class="product-condition-label">${p.condition}</div>` : ""}
       </div>`;
-    if (!isUnavailable) card.addEventListener('click', () => openModal(p));
-    grid.appendChild(card);
-  });
-}
+          if (!isUnavailable || inCartItem) card.addEventListener("click", () => openModal(p));
+          grid.appendChild(card);
+        });
+      }
 
-/* â”€â”€ FILTER RENDERERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-function getCheckedConditions() { return Array.from(document.querySelectorAll('#condition-filters input:checked')).map(el=>el.dataset.condition); }
+      /* â”€â”€ FILTER RENDERERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+      function getCheckedConditions() {
+        return Array.from(document.querySelectorAll("#condition-filters input:checked")).map((el) => el.dataset.condition);
+      }
 
-function renderCategoryFilters() {
-  const container = document.getElementById('category-filters');
-  if (!allCategories.length) { container.innerHTML = '<div class="filter-loading">None available.</div>'; return; }
-  container.innerHTML = allCategories.map(c => `
+      function renderCategoryFilters() {
+        const container = document.getElementById("category-filters");
+        if (!allCategories.length) {
+          container.innerHTML = '<div class="filter-loading">None available.</div>';
+          return;
+        }
+        container.innerHTML = allCategories
+          .map(
+            (c) => `
     <div class="filter-item">
       <input type="checkbox" id="cat-${c.category_id}" data-category="${escHtml(c.name)}" onchange="applyFiltersAndSort()">
       <label for="cat-${c.category_id}">${escHtml(c.name)}</label>
-    </div>`).join('');
+    </div>`,
+          )
+          .join("");
 
-  /* Auto-select category from ?cat= URL param (set by home page pills) */
-  const urlCat = new URLSearchParams(window.location.search).get('cat');
-  if (urlCat) {
-    const match = document.querySelector(
-      `#category-filters input[data-category="${urlCat.replace(/"/g,'&quot;')}"]`
-    );
-    if (match) { match.checked = true; applyFiltersAndSort(); }
-  }
-}
+        /* Auto-select category from ?cat= URL param (set by home page pills) */
+        const urlCat = new URLSearchParams(window.location.search).get("cat");
+        if (urlCat) {
+          const match = document.querySelector(`#category-filters input[data-category="${urlCat.replace(/"/g, "&quot;")}"]`);
+          if (match) {
+            match.checked = true;
+            applyFiltersAndSort();
+          }
+        }
+      }
 
-/* â”€â”€ FILTERING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-function getCheckedCategories() { return Array.from(document.querySelectorAll('#category-filters input:checked')).map(el=>el.dataset.category.toLowerCase()); }
+      /* â”€â”€ FILTERING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+      function getCheckedCategories() {
+        return Array.from(document.querySelectorAll("#category-filters input:checked")).map((el) => el.dataset.category.toLowerCase());
+      }
 
-function applyFiltersAndSort() {
-  renderProducts(applyFiltersAndSortSilent());
-}
+      function applyFiltersAndSort() {
+        renderProducts(applyFiltersAndSortSilent());
+      }
 
-function applyFiltersAndSortSilent() {
-  const cats  = getCheckedCategories();
-  let result  = cats.length ? allProducts.filter(p=>{
-    const pCats = (p.categories||[]).map(c=>c.name.toLowerCase());
-    if (!pCats.length && p.category) pCats.push(...p.category.split(',').map(s=>s.trim().toLowerCase()));
-    return cats.some(c=>pCats.includes(c));
-  }) : [...allProducts];
-  const conds = getCheckedConditions();
-  if (conds.length) result = result.filter(p=>conds.includes(p.condition||''));
-  const p1=document.getElementById('p1').checked, p2=document.getElementById('p2').checked,
-        p3=document.getElementById('p3').checked, p4=document.getElementById('p4').checked;
-  if (p1||p2||p3||p4) result=result.filter(p=>(p1&&p.price<200)||(p2&&p.price>=200&&p.price<=500)||(p3&&p.price>500&&p.price<=1000)||(p4&&p.price>1000));
-  const sv = document.getElementById('sort-select').value;
-  if (sv==='price-asc')  result.sort((a,b)=>a.price-b.price);
-  else if(sv==='price-desc') result.sort((a,b)=>b.price-a.price);
-  else if(sv==='name')   result.sort((a,b)=>a.name.localeCompare(b.name));
-  return result;
-}
+      function applyFiltersAndSortSilent() {
+        const cats = getCheckedCategories();
+        let result = cats.length
+          ? allProducts.filter((p) => {
+              const pCats = (p.categories || []).map((c) => c.name.toLowerCase());
+              if (!pCats.length && p.category) pCats.push(...p.category.split(",").map((s) => s.trim().toLowerCase()));
+              return cats.some((c) => pCats.includes(c));
+            })
+          : [...allProducts];
+        const conds = getCheckedConditions();
+        if (conds.length) result = result.filter((p) => conds.includes(p.condition || ""));
+        const p1 = document.getElementById("p1").checked,
+          p2 = document.getElementById("p2").checked,
+          p3 = document.getElementById("p3").checked,
+          p4 = document.getElementById("p4").checked;
+        if (p1 || p2 || p3 || p4) result = result.filter((p) => (p1 && p.price < 200) || (p2 && p.price >= 200 && p.price <= 500) || (p3 && p.price > 500 && p.price <= 1000) || (p4 && p.price > 1000));
+        const sv = document.getElementById("sort-select").value;
+        if (sv === "price-asc") result.sort((a, b) => a.price - b.price);
+        else if (sv === "price-desc") result.sort((a, b) => b.price - a.price);
+        else if (sv === "name") result.sort((a, b) => a.name.localeCompare(b.name));
+        return result;
+      }
 
-function clearConditionFilter() { document.querySelectorAll('#condition-filters input').forEach(el=>el.checked=false); applyFiltersAndSort(); }
-function clearCategoryFilter()  { document.querySelectorAll('#category-filters input').forEach(el=>el.checked=false); applyFiltersAndSort(); }
-function clearPriceFilter()     { ['p1','p2','p3','p4'].forEach(id=>document.getElementById(id).checked=false); applyFiltersAndSort(); }
+      function clearConditionFilter() {
+        document.querySelectorAll("#condition-filters input").forEach((el) => (el.checked = false));
+        applyFiltersAndSort();
+      }
+      function clearCategoryFilter() {
+        document.querySelectorAll("#category-filters input").forEach((el) => (el.checked = false));
+        applyFiltersAndSort();
+      }
+      function clearPriceFilter() {
+        ["p1", "p2", "p3", "p4"].forEach((id) => (document.getElementById(id).checked = false));
+        applyFiltersAndSort();
+      }
 
-/* â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-loadCategories(renderCategoryFilters);
-loadProducts(renderProducts);
-</script>
-</body>
+      /* â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+      loadCategories(renderCategoryFilters);
+      loadProducts(renderProducts);
+    </script>
+  </body>
 </html>

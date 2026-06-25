@@ -1,0 +1,102 @@
+.terms-page {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 5rem;
+}
+.terms-hero {
+  margin-bottom: 2.5rem;
+}
+.terms-hero h1 {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 3rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.4rem;
+}
+.terms-hero p {
+  color: var(--text-muted);
+  font-size: 0.84rem;
+}
+
+.terms-toc {
+  background: var(--bg-section);
+  border: 1.5px solid var(--border-strong, #c0bdb7);
+  border-radius: 12px;
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 2.5rem;
+}
+.terms-toc-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+.terms-toc ol {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+.terms-toc li {
+  font-size: 0.84rem;
+  margin-bottom: 0.35rem;
+}
+.terms-toc a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.terms-toc a:hover {
+  text-decoration: underline;
+}
+
+.terms-section {
+  margin-bottom: 2.5rem;
+}
+.terms-section-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 0.08em;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--accent);
+  color: var(--text);
+}
+.terms-section p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.8;
+  margin-bottom: 0.9rem;
+}
+.terms-section ul {
+  padding-left: 1.4rem;
+  margin-bottom: 0.9rem;
+}
+.terms-section ul li {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.8;
+  margin-bottom: 0.3rem;
+}
+.terms-section strong {
+  color: var(--text);
+}
+
+.terms-highlight {
+  background: rgba(239, 68, 68, 0.07);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-left: 3px solid #e53e3e;
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+  font-size: 0.86rem;
+  color: var(--text);
+  line-height: 1.7;
+}
+.terms-highlight strong {
+  color: #e53e3e;
+}
+
+.terms-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 3rem 0;
+}
